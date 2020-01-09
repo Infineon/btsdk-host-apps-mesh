@@ -67,10 +67,10 @@ wiced {
 }
 
 mtb_release {
-    SOURCES += ../mesh_client_lib/wiced_mesh_client.c
-    SOURCES += ../mesh_client_lib/wiced_bt_mesh_db.c
-    SOURCES += ../mesh_client_lib/wiced_mesh_api.c
-    SOURCES += ../mesh_client_lib/meshdb.c
+    SOURCES += ../../../dev-kit/libraries/btsdk-mesh/mesh_client_lib/wiced_mesh_client.c
+    SOURCES += ../../../dev-kit/libraries/btsdk-mesh/mesh_client_lib/wiced_bt_mesh_db.c
+    SOURCES += ../../../dev-kit/libraries/btsdk-mesh/mesh_client_lib/wiced_mesh_api.c
+    SOURCES += ../../../dev-kit/libraries/btsdk-mesh/mesh_client_lib/meshdb.c
 
     DEFINES += PROVISION_SCAN_REPORT_INCLUDE_BDADDR
 
@@ -82,7 +82,7 @@ mtb_release {
     INCLUDEPATH += $$_PRO_FILE_PWD_/../../../dev-kit/baselib/20819A1/include/hal
     INCLUDEPATH += $$_PRO_FILE_PWD_/../../../dev-kit/baselib/20819A1/include/stack
     INCLUDEPATH += $$_PRO_FILE_PWD_/../../../dev-kit/btsdk-include
-    INCLUDEPATH += $$_PRO_FILE_PWD_/../mesh_client_lib
+    INCLUDEPATH += $$_PRO_FILE_PWD_/../../../dev-kit/libraries/btsdk-mesh/mesh_client_lib
 }
 
 wiced:macx:win32:win64 {

@@ -29,21 +29,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='AutomationDebug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -51,7 +51,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -182,7 +182,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;CLIENTCONTROL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\;..\mesh_client_lib;..\..\..\dev-kit\baselib\20819A1\include;..\..\..\dev-kit\btsdk-include;..\..\..\dev-kit\baselib\20819A1\include\hal;..\..\..\dev-kit\baselib\20819A1\include\stack;..\..\..\dev-kit\baselib\20819A1\include\internal</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\dev-kit\libraries\btsdk-mesh\mesh_client_lib;..\..\..\dev-kit\baselib\20819A1\include;..\..\..\dev-kit\btsdk-include;..\..\..\dev-kit\baselib\20819A1\include\hal;..\..\..\dev-kit\baselib\20819A1\include\stack;..\..\..\dev-kit\baselib\20819A1\include\internal</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -240,16 +240,16 @@
     <ClCompile Include="..\peerapps\Windows\MeshClient\automation\script_app.c" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'">
-    <ClCompile Include="..\mesh_client_lib\meshdb.c">
+    <ClCompile Include="..\..\..\dev-kit\libraries\btsdk-mesh\mesh_client_lib\meshdb.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\mesh_client_lib\wiced_bt_mesh_db.c">
+    <ClCompile Include="..\..\..\dev-kit\libraries\btsdk-mesh\mesh_client_lib\wiced_bt_mesh_db.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\mesh_client_lib\wiced_mesh_api.c">
+    <ClCompile Include="..\..\..\dev-kit\libraries\btsdk-mesh\mesh_client_lib\wiced_mesh_api.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\mesh_client_lib\wiced_mesh_client.c">
+    <ClCompile Include="..\..\..\dev-kit\libraries\btsdk-mesh\mesh_client_lib\wiced_mesh_client.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='MTB-Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>

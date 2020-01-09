@@ -6,8 +6,8 @@
 **              uses static or dynamic memory for its control blocks.
 **
 **
-**  Copyright (c) 2002-2010, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
+**  Copyright (c) 2002-2010, Cypress Semiconductor., All Rights Reserved.
+**  Cypress Semiconductor Bluetooth Core. Proprietary and confidential.
 **
 *****************************************************************************/
 #ifndef DYN_MEM_H

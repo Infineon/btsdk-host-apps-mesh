@@ -6,8 +6,8 @@
 /*              diagnostic trace message service.                           */
 /*                                                                          */
 /*                                                                          */
-/*  Copyright (c) 1999-2014, Broadcom Corp., All Rights Reserved.           */
-/*  Broadcom Bluetooth Core. Proprietary and confidential.                  */
+/*  Copyright (c) 1999-2014, Cypress Semiconductor., All Rights Reserved.           */
+/*  Cypress Semiconductor Bluetooth Core. Proprietary and confidential.                  */
 /*                                                                          */
 /****************************************************************************/
 #ifndef BT_TRACE_H

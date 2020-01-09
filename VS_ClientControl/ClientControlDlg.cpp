@@ -14,6 +14,7 @@
 #include "MeshConfig.h"
 #include "LightControl.h"
 #include "wiced_bt_mesh_model_defs.h"
+#include "wiced_mesh_client.h"
 
 ComHelper *m_ComHelper;
 
@@ -91,7 +92,7 @@ LightLcProp lightLcProp[] =
 };
 int numLightLcProps = sizeof(lightLcProp) / sizeof(lightLcProp[0]);
 
-extern "C" uint8_t* wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint16_t num_in_group, uint16_t* group_list, uint8_t* p_buffer, uint16_t len);
+extern "C" uint8_t *wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t ttl, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint16_t num_in_group, uint16_t *group_list, uint8_t *p_buffer, uint16_t len);
 
 char* szRegKeyPrefix = "Software\\Cypress\\";
 char *szAppName = "HciControlMesh";
@@ -1319,7 +1320,7 @@ void CClientControlDlg::OnBnClickedBatteryLevelGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_BATTERY_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -1333,7 +1334,7 @@ void CClientControlDlg::OnBnClickedSceneRegisterGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCENE_REGISTER_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -1352,7 +1353,7 @@ void CClientControlDlg::OnBnClickedSceneRecall()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = scene & 0xff;
     *p++ = (scene >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -1377,7 +1378,7 @@ void CClientControlDlg::OnBnClickedSceneGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCENE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -1394,7 +1395,7 @@ void CClientControlDlg::OnBnClickedSceneStore()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = scene & 0xff;
     *p++ = (scene >> 8) & 0xff;
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCENE_STORE, buffer, (DWORD)(p - buffer));
@@ -1413,7 +1414,7 @@ void CClientControlDlg::OnBnClickedSceneDelete()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = scene & 0xff;
     *p++ = (scene >> 8) & 0xff;
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCENE_DELETE, buffer, (DWORD)(p - buffer));
@@ -1436,7 +1437,7 @@ void CClientControlDlg::OnBnClickedBatteryLevelSet()
         dst = (USHORT)GetHexValueInt(IDC_DST);
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = battery_level;
     *p++ = time_to_discharge & 0xff;
     *p++ = (time_to_discharge >> 8) & 0xff;
@@ -1479,7 +1480,7 @@ void CClientControlDlg::OnBnClickedLocationGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LOCATION_GLOBAL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -1502,7 +1503,7 @@ void CClientControlDlg::OnBnClickedLocationLocalGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LOCATION_LOCAL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -1688,7 +1689,7 @@ void CClientControlDlg::ReadValuesSendMsg(BYTE local_global)
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE msg[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, NULL, 0, msg, sizeof(msg));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, NULL, 0, msg, sizeof(msg));
     if (local_global & LOCATION_SEND_GLOBAL)
     {
         *p++ = global_latitude & 0xff;
@@ -2050,7 +2051,7 @@ void CClientControlDlg::OnBnClickedOnOffGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_ONOFF_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -2069,7 +2070,7 @@ void CClientControlDlg::OnBnClickedOnOffSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_state;
     *p++ = transition_time & 0xff;
     *p++ = (transition_time >> 8) & 0xff;
@@ -2717,7 +2718,7 @@ void CClientControlDlg::OnBnClickedLevelGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LEVEL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -2735,7 +2736,7 @@ void CClientControlDlg::OnBnClickedLevelSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_level & 0xff;
     *p++ = (target_level >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -2764,7 +2765,7 @@ void CClientControlDlg::OnBnClickedDeltaSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = delta_level & 0xff;
     *p++ = (delta_level >> 8) & 0xff;
     *p++ = (delta_level >> 16) & 0xff;
@@ -2795,7 +2796,7 @@ void CClientControlDlg::OnBnClickedMoveSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = delta_level & 0xff;
     *p++ = (delta_level >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -2841,7 +2842,7 @@ void CClientControlDlg::OnBnClickedDefaultTransitionTimeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_DEF_TRANS_TIME_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -2858,7 +2859,7 @@ void CClientControlDlg::OnBnClickedDefaultTransitionTimeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = transition_time & 0xff;
     *p++ = (transition_time >> 8) & 0xff;
     *p++ = (transition_time >> 16) & 0xff;
@@ -2897,7 +2898,7 @@ void CClientControlDlg::OnBnClickedPowerOnOffGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_ONPOWERUP_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -2914,7 +2915,7 @@ void CClientControlDlg::OnBnClickedPowerOnOffSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = on_power_up_state;
 
     m_trace->SetCurSel(m_trace->AddString(L"Send OnPowerUp Set"));
@@ -3028,7 +3029,7 @@ void CClientControlDlg::OnBnClickedPowerLevelGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_POWER_LEVEL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3046,7 +3047,7 @@ void CClientControlDlg::OnBnClickedPowerLevelSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_level & 0xff;
     *p++ = (target_level >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -3070,7 +3071,7 @@ void CClientControlDlg::OnBnClickedPowerLevelLastGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_POWER_LEVEL_LAST_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3084,7 +3085,7 @@ void CClientControlDlg::OnBnClickedPowerLevelDefaultGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_POWER_LEVEL_DEFAULT_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3101,7 +3102,7 @@ void CClientControlDlg::OnBnClickedPowerLevelDefaultSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = default_level & 0xff;
     *p++ = (default_level >> 8) & 0xff;
 
@@ -3119,7 +3120,7 @@ void CClientControlDlg::OnBnClickedPowerLevelRangeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_POWER_LEVEL_RANGE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3136,7 +3137,7 @@ void CClientControlDlg::OnBnClickedPowerLevelRangeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = range_min & 0xff;
     *p++ = (range_min >> 8) & 0xff;
     *p++ = range_max & 0xff;
@@ -3157,7 +3158,7 @@ void CClientControlDlg::OnBnClickedPowerLevelStatus()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = current_state & 0xff;
     *p++ = (current_state >> 8) & 0xff;
     *p++ = 0;   // remaining time is currently 0
@@ -3233,7 +3234,7 @@ void CClientControlDlg::OnBnClickedPropertiesGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = (BYTE)type;
     // Starting ID is valid for Client Properties Only
     if (type == 0)
@@ -3253,7 +3254,7 @@ void CClientControlDlg::OnBnClickedPropertyGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     USHORT id = (USHORT)GetHexValueInt(IDC_PROPERTY_ID);
     if (((CComboBox *)GetDlgItem(IDC_TEST_SELECTION))->GetCurSel() == 16) // Light LC
     {
@@ -3285,7 +3286,7 @@ void CClientControlDlg::OnBnClickedPropertySet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = type;
     *p++ = id & 0xff;
     *p++ = (id >> 8) & 0xff;
@@ -3313,7 +3314,7 @@ void CClientControlDlg::OnBnClickedLightLightnessGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(linear ? HCI_CONTROL_MESH_COMMAND_LIGHT_LIGHTNESS_LINEAR_GET : HCI_CONTROL_MESH_COMMAND_LIGHT_LIGHTNESS_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3337,7 +3338,7 @@ void CClientControlDlg::OnBnClickedLightLightnessSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_level & 0xff;
     *p++ = (target_level >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -3366,7 +3367,7 @@ void CClientControlDlg::OnBnClickedLightLightnessLastGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LIGHTNESS_LAST_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3385,7 +3386,7 @@ void CClientControlDlg::OnBnClickedLightLightnessDefaultGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LIGHTNESS_DEFAULT_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3407,7 +3408,7 @@ void CClientControlDlg::OnBnClickedLightLightnessDefaultSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = default_level & 0xff;
     *p++ = (default_level >> 8) & 0xff;
 
@@ -3430,7 +3431,7 @@ void CClientControlDlg::OnBnClickedLightLightnessRangeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LIGHTNESS_RANGE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3453,7 +3454,7 @@ void CClientControlDlg::OnBnClickedLightLightnessRangeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = range_min & 0xff;
     *p++ = (range_min >> 8) & 0xff;
     *p++ = range_max & 0xff;
@@ -3495,7 +3496,7 @@ void CClientControlDlg::OnBnClickedSensorMsgSend()
         dst = (USHORT)GetHexValueInt(IDC_DST);
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     ((CEdit *)GetDlgItem(IDC_SENSOR_PROP_ID))->GetWindowTextW(propIdStr);
 
     switch (currentSelectedCommand)
@@ -3801,7 +3802,7 @@ void CClientControlDlg::OnBnClickedLightHslGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3822,7 +3823,7 @@ void CClientControlDlg::OnBnClickedLightHslSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_hue & 0xff;
@@ -3851,7 +3852,7 @@ void CClientControlDlg::OnBnClickedLightHslHueGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_HUE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3870,7 +3871,7 @@ void CClientControlDlg::OnBnClickedLightHslHueSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_hue & 0xff;
     *p++ = (target_hue >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -3895,7 +3896,7 @@ void CClientControlDlg::OnBnClickedLightHslSaturationGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_SATURATION_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3914,7 +3915,7 @@ void CClientControlDlg::OnBnClickedLightHslSaturationSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_saturation & 0xff;
     *p++ = (target_saturation >> 8) & 0xff;
     *p++ = transition_time & 0xff;
@@ -3938,7 +3939,7 @@ void CClientControlDlg::OnBnClickedLightHslTargetGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_TARGET_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3952,7 +3953,7 @@ void CClientControlDlg::OnBnClickedLightHslDefaultGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_DEFAULT_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -3973,7 +3974,7 @@ void CClientControlDlg::OnBnClickedLightHslDefaultSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_hue & 0xff;
@@ -3996,7 +3997,7 @@ void CClientControlDlg::OnBnClickedLightHslRangeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_HSL_RANGE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4016,7 +4017,7 @@ void CClientControlDlg::OnBnClickedLightHslRangeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = hue_min & 0xff;
     *p++ = (hue_min >> 8) & 0xff;
     *p++ = hue_max & 0xff;
@@ -4040,7 +4041,7 @@ void CClientControlDlg::OnBnClickedLightCtlGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_CTL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4061,7 +4062,7 @@ void CClientControlDlg::OnBnClickedLightCtlSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_temperature & 0xff;
@@ -4089,7 +4090,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_CTL_TEMPERATURE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4109,7 +4110,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_temperature & 0xff;
     *p++ = (target_temperature >> 8) & 0xff;
     *p++ = target_delta_uv & 0xff;
@@ -4136,7 +4137,7 @@ void CClientControlDlg::OnBnClickedLightCtlDefaultGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_CTL_DEFAULT_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4157,7 +4158,7 @@ void CClientControlDlg::OnBnClickedLightCtlDefaultSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_temperature & 0xff;
@@ -4180,7 +4181,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureRangeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_CTL_TEMPERATURE_RANGE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4200,7 +4201,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureRangeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = range_min & 0xff;
     *p++ = (range_min >> 8) & 0xff;
     *p++ = range_max & 0xff;
@@ -4220,7 +4221,7 @@ void CClientControlDlg::OnBnClickedLightXylGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_XYL_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4241,7 +4242,7 @@ void CClientControlDlg::OnBnClickedLightXylSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_x & 0xff;
@@ -4275,7 +4276,7 @@ void CClientControlDlg::OnBnClickedLightXylTargetGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_XYL_TARGET_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4289,7 +4290,7 @@ void CClientControlDlg::OnBnClickedLightXylDefaultGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_XYL_DEFAULT_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4309,7 +4310,7 @@ void CClientControlDlg::OnBnClickedLightXylDefaultSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = target_lightness & 0xff;
     *p++ = (target_lightness >> 8) & 0xff;
     *p++ = target_x & 0xff;
@@ -4332,7 +4333,7 @@ void CClientControlDlg::OnBnClickedLightXylRangeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_XYL_RANGE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4351,7 +4352,7 @@ void CClientControlDlg::OnBnClickedLightXylRangeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = x_min & 0xff;
     *p++ = (x_min >> 8) & 0xff;
     *p++ = x_max & 0xff;
@@ -4375,7 +4376,7 @@ void CClientControlDlg::OnBnClickedLightLcModeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_MODE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4393,7 +4394,7 @@ void CClientControlDlg::OnBnClickedLightLcModeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = mode;
 
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_MODE_SET, buffer, (DWORD)(p - buffer));
@@ -4409,7 +4410,7 @@ void CClientControlDlg::OnBnClickedLightLcOccupancyModeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_OCCUPANCY_MODE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4428,7 +4429,7 @@ void CClientControlDlg::OnBnClickedLightLcOccupancyModeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = mode;
 
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_OCCUPANCY_MODE_SET, buffer, (DWORD)(p - buffer));
@@ -4440,7 +4441,7 @@ void CClientControlDlg::OnBnClickedLightLcOccupancySet()
     BYTE mode = ((CComboBox *)GetDlgItem(IDC_LIGHT_LC_OCCUPANCY_MODE))->GetCurSel();
     USHORT dst = 0, app_key_idx = 0;
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_OCCUPANCY_SET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4454,7 +4455,7 @@ void CClientControlDlg::OnBnClickedLightLcOnOffGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_ONOFF_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -4475,7 +4476,7 @@ void CClientControlDlg::OnBnClickedLightLcOnOffSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = onoff;
     *p++ = transition_time & 0xff;
     *p++ = (transition_time >> 8) & 0xff;
@@ -4498,7 +4499,7 @@ void CClientControlDlg::OnBnClickedLightLcPropertyGet()
     }
     USHORT id = lightLcProp[((CComboBox *)GetDlgItem(IDC_LIGHT_LC_PROPERTY))->GetCurSel()].PropId;
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = id & 0xff;
     *p++ = (id >> 8) & 0xff;
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_LIGHT_LC_PROPERTY_GET, buffer, (DWORD)(p - buffer));
@@ -4517,7 +4518,7 @@ void CClientControlDlg::OnBnClickedLightLcPropertySet()
     }
     USHORT id = lightLcProp[((CComboBox *)GetDlgItem(IDC_LIGHT_LC_PROPERTY))->GetCurSel()].PropId;
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = id & 0xff;
     *p++ = (id >> 8) & 0xff;
     DWORD value = GetDlgItemInt(IDC_LIGHT_LC_PROPERTY_VALUE, NULL, 0);
@@ -4555,7 +4556,7 @@ void CClientControlDlg::OnBnClickedVsData()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[400];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
 
     DWORD data_len = GetHexValue(IDC_TC_NET_LEVEL_TRX_PDU, p, (DWORD)(&buffer[sizeof(buffer)] - p));
 
@@ -5020,7 +5021,7 @@ void CClientControlDlg::OnBnClickedSchedulerRegisterGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCHEDULER_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -5042,7 +5043,7 @@ void CClientControlDlg::OnBnClickedSchedulerActionGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = index;
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_SCHEDULER_ACTION_GET, buffer, (DWORD)(p - buffer));
 }
@@ -5066,7 +5067,7 @@ void CClientControlDlg::OnBnClickedSchedulerActionSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
 
     *p++ = GetDlgItemInt(IDC_SCHEDULAR_ACTION_NUMBER);
 
@@ -5242,7 +5243,7 @@ void CClientControlDlg::OnBnClickedTimeGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TIME_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -5323,7 +5324,7 @@ void CClientControlDlg::OnBnClickedTimeSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = tai_time & 0xff;
     *p++ = (tai_time >> 8) & 0xff;
     *p++ = (tai_time >> 16) & 0xff;
@@ -5350,7 +5351,7 @@ void CClientControlDlg::OnBnClickedTimezoneGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TIME_ZONE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -5369,7 +5370,7 @@ void CClientControlDlg::OnBnClickedTimezoneSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = time_zone_offset_current & 0xff;
     *p++ = tai_time & 0xff;
     *p++ = (tai_time >> 8) & 0xff;
@@ -5391,7 +5392,7 @@ void CClientControlDlg::OnBnClickedTaiUtcDeltaGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TIME_TAI_UTC_DELTA_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -5410,7 +5411,7 @@ void CClientControlDlg::OnBnClickedTaiUtcDeltaSet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = delta & 0xff;
     *p++ = (delta >> 8) & 0xff;
     *p++ = tai_time & 0xff;
@@ -5433,7 +5434,7 @@ void CClientControlDlg::OnBnClickedTimeAuthorityGet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TIME_ROLE_GET, buffer, (DWORD)(p - buffer));
 }
 
@@ -5446,7 +5447,7 @@ void CClientControlDlg::OnBnClickedTimeAuthoritySet()
         app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, NULL, buffer, sizeof(buffer));
     *p++ = ((CComboBox *)GetDlgItem(IDC_TIME_AUTHORITY))->GetCurSel();
 
     m_trace->SetCurSel(m_trace->AddString(L"Send Time Authority Set"));

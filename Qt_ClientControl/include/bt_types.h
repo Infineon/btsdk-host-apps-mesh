@@ -5,8 +5,8 @@
 **  Function    this file contains definitions that are shared between
 **              units in the Bluetooth system such as events.
 **
-**  Copyright (c) 1999-2015, Broadcom Corp., All Rights Reserved.
-**  Broadcom Bluetooth Core. Proprietary and confidential.
+**  Copyright (c) 1999-2015, Cypress Semiconductor., All Rights Reserved.
+**  Cypress Semiconductor Bluetooth Core. Proprietary and confidential.
 **
 ****************************************************************************/
 
