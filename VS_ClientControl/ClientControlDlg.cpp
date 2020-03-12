@@ -222,7 +222,6 @@ BEGIN_MESSAGE_MAP(CClientControlDlg, CPropertyPage) // CDialogEx)
     ON_BN_CLICKED(IDC_SCHEDULER_ADVANCED, &CClientControlDlg::OnBnClickedSchedulerAdvanced)
     ON_BN_CLICKED(IDC_TIME_GET, &CClientControlDlg::OnBnClickedTimeGet)
     ON_BN_CLICKED(IDC_TC_HEALTH_FAULTS_SET, &CClientControlDlg::OnBnClickedTcHealthFaultsSet)
-    ON_BN_CLICKED(IDC_TC_CFG_ONE_NETKEY, &CClientControlDlg::OnBnClickedTcCfgOneNetkey)
     ON_BN_CLICKED(IDC_TIME_SET, &CClientControlDlg::OnBnClickedTimeSet)
     ON_BN_CLICKED(IDC_TIMEZONE_GET, &CClientControlDlg::OnBnClickedTimezoneGet)
     ON_BN_CLICKED(IDC_TIMEZONE_SET, &CClientControlDlg::OnBnClickedTimezoneSet)
@@ -645,7 +644,6 @@ void CClientControlDlg::DisableAll()
     GetDlgItem(IDC_TC_CLEAR_RPL)->EnableWindow(FALSE);
     GetDlgItem(IDC_TC_HEALTH_FAULTS)->EnableWindow(FALSE);
     GetDlgItem(IDC_TC_HEALTH_FAULTS_SET)->EnableWindow(FALSE);
-    GetDlgItem(IDC_TC_CFG_ONE_NETKEY)->EnableWindow(FALSE);
     GetDlgItem(IDC_TC_CFG_IDENTITY)->EnableWindow(FALSE);
 }
 
@@ -4965,7 +4963,6 @@ void CClientControlDlg::EnableOther()
     GetDlgItem(IDC_TC_CLEAR_RPL)->EnableWindow(TRUE);
     GetDlgItem(IDC_TC_HEALTH_FAULTS)->EnableWindow(TRUE);
     GetDlgItem(IDC_TC_HEALTH_FAULTS_SET)->EnableWindow(TRUE);
-    GetDlgItem(IDC_TC_CFG_ONE_NETKEY)->EnableWindow(TRUE);
     GetDlgItem(IDC_TC_CFG_IDENTITY)->EnableWindow(TRUE);
 }
 
@@ -5003,12 +5000,6 @@ void CClientControlDlg::OnBnClickedTcHealthFaultsSet()
     *p++ = (company_id >> 8) & 0xff;
     p += GetHexValue(IDC_TC_HEALTH_FAULTS, p, 16);
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CORE_HEALTH_SET_FAULTS, buffer, (DWORD)(p - buffer));
-}
-
-void CClientControlDlg::OnBnClickedTcCfgOneNetkey()
-{
-    m_trace->SetCurSel(m_trace->AddString(L"Config: Set One NetKey"));
-    m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CORE_CFG_ONE_NETKEY, NULL, 0);
 }
 
 void CClientControlDlg::OnBnClickedSchedulerRegisterGet()

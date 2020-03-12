@@ -118,6 +118,7 @@ public:
     afx_msg void OnBnClickedReconfigure();
     afx_msg void OnBnClickedBrowseOta();
     afx_msg void OnCbnSelchangeConfigureControlDevice();
+    afx_msg void OnCbnSelchangeConfigureMoveDevice();
     afx_msg void OnBnClickedNetworkImport();
     afx_msg void OnBnClickedNetworkExport();
     afx_msg void OnBnClickedOtaUpgradeStop();

@@ -239,7 +239,6 @@ public:
     afx_msg void OnBnClickedSceneStore();
     afx_msg void OnBnClickedSceneDelete();
     afx_msg void OnBnClickedTcHealthFaultsSet();
-    afx_msg void OnBnClickedTcCfgOneNetkey();
     afx_msg void OnBnClickedSchedulerRegisterGet();
     afx_msg void OnBnClickedSchedulerActionGet();
     afx_msg void OnBnClickedSchedulerActionSet();
