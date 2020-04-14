@@ -5,6 +5,7 @@
 #include "ControlComm.h"
 #include "MeshConfig.h"
 #include "LightControl.h"
+#include "MeshPerf.h"
 
 #pragma once
 
@@ -280,6 +281,7 @@ public:
 #ifndef NO_LIGHT_CONTROL
     CLightControl pageLight;
 #endif
+    CMeshPerformance pageMeshPerf;
     // Operations
 public:
 

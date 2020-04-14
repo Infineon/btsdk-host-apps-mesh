@@ -29,6 +29,10 @@ public:
 // Implementation
 
     DECLARE_MESSAGE_MAP( )
+
+    public:
+        BOOL bMeshPerfMode;
+
 };
 
 typedef struct

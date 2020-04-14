@@ -32,7 +32,7 @@ BYTE pub_key_type;
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_STOP    7   ///< Provisioner and Provisioning node: Stop displaying OOB value
 
 extern void TraceHciPkt(BYTE type, BYTE *buffer, USHORT length);
-extern "C" uint8_t *wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t ttl, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint16_t num_in_group, uint16_t *group_list, uint8_t *p_buffer, uint16_t len);
+extern "C" uint8_t *wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t ttl, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint8_t *p_buffer, uint16_t len);
 extern "C" wiced_bt_mesh_event_t *wiced_bt_mesh_event_from_hci_header(uint8_t **p_buffer, uint16_t *len);
 
 // COutputOob dialog
@@ -414,7 +414,7 @@ void CConfig::ProcessData(DWORD opcode, LPBYTE p_data, DWORD len)
         ProcessProvisionEnd(p_data, len);
         break;
     case HCI_CONTROL_MESH_EVENT_PROVISION_LINK_REPORT:
-        ProcessProvisionLinkStatus(p_data, len);
+        ProcessProvisionLinkReport(p_data, len);
         break;
     case HCI_CONTROL_MESH_EVENT_PROVISION_DEVICE_CAPABITIES:
         ProcessProvisionDeviceCapabilities(p_data, len);
@@ -623,17 +623,15 @@ void CConfig::ProcessProvisionEnd(LPBYTE p_data, DWORD len)
     wiced_bt_mesh_provision_set_dev_key(&data);
 }
 
-void CConfig::ProcessProvisionLinkStatus(LPBYTE p_data, DWORD len)
+void CConfig::ProcessProvisionLinkReport(LPBYTE p_data, DWORD len)
 {
     wiced_bt_mesh_event_t *p_event = wiced_bt_mesh_event_from_hci_header(&p_data, (uint16_t *)&len);
     if (p_event == NULL)
         return;
-    free(p_event);
-    WCHAR buf[80];
-    conn_id = p_data[0] + ((ULONG)p_data[1] << 8) + ((ULONG)p_data[2] << 16) + ((ULONG)p_data[3] << 24);
-    USHORT addr = p_data[4] + ((USHORT)p_data[5] << 8);
-    wsprintf(buf, L"Provision: Link Status conn_id:%x Addr:%x connected:%x over_gatt:%d", conn_id, addr, p_data[6], p_data[7]);
+    WCHAR buf[160];
+    wsprintf(buf, L"Provision: Link Report from:%04x status:%d remote provisioner state:%d reason:%d over_gatt:%d", p_event->src, p_data[0], p_data[1], p_data[2], p_data[3]);
     m_trace->SetCurSel(m_trace->AddString(buf));
+    free(p_event);
 }
 
 void CConfig::ProcessProvisionDeviceCapabilities(LPBYTE p_data, DWORD len)
@@ -1461,7 +1459,7 @@ void CConfig::OnBnClickedHeartbeatSubscriptionGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
     BYTE    buffer[128];
 
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Heartbeat Subscription Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_HEARBEAT_SUBSCRIPTION_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1474,7 +1472,7 @@ void CConfig::OnBnClickedHeartbeatSubscriptionSet()
     USHORT subsription_dst = (USHORT)GetHexValueInt(IDC_HEARTBEAT_SUBSCRIPTION_DST);
     ULONG subsription_period = (ULONG)GetHexValueInt(IDC_HEARTBEAT_SUBSCRIPTION_PERIOD);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = subsription_src & 0xff;
     *p++ = (subsription_src >> 8) & 0xff;
     *p++ = subsription_dst & 0xff;
@@ -1492,7 +1490,7 @@ void CConfig::OnBnClickedHeartbeatPublicationGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Heartbeat Publication Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_HEARBEAT_PUBLICATION_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1511,7 +1509,7 @@ void CConfig::OnBnClickedHeartbeatPublicationSet()
     USHORT publication_net_key_idx = (USHORT)GetHexValueInt(IDC_HEARTBEAT_PUBLICATION_NET_KEY_IDX);
     BYTE   publication_ttl = (BYTE)GetHexValueInt(IDC_HEARTBEAT_PUBLICATION_TTL);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = publication_dst & 0xff;
     *p++ = (publication_dst >> 8) & 0xff;
     *p++ = publication_count & 0xff;
@@ -1538,7 +1536,7 @@ void CConfig::OnBnClickedNetworkTransmitIntervalGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Network Transmit Interval Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_NETWORK_TRANSMIT_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1550,7 +1548,7 @@ void CConfig::OnBnClickedNetworkTransmitIntervalSet()
     BYTE network_transmit_count = (BYTE)GetHexValueInt(IDC_NETWORK_TRANSMIT_COUNT);
     USHORT network_transmit_interval = (USHORT)GetHexValueInt(IDC_NETWORK_TRANSMIT_INTERVAL);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = network_transmit_count & 0xff;
     *p++ = network_transmit_interval & 0xff;
     *p++ = (network_transmit_interval >> 8) & 0xff;
@@ -1563,7 +1561,7 @@ void CConfig::OnBnClickedNodeReset()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
 
     m_trace->SetCurSel(m_trace->AddString(L"Node Reset"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_NODE_RESET, buffer, (DWORD)(p - buffer));
@@ -1583,7 +1581,7 @@ void CConfig::OnBnClickedBeaconGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Beacon Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_BEACON_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1594,7 +1592,7 @@ void CConfig::OnBnClickedBeaconSet()
 
     BYTE beacon_state = (BYTE)((CComboBox *)(GetDlgItem(IDC_BEACON_STATE)))->GetCurSel();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = beacon_state & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Beacon Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_BEACON_SET, buffer, (DWORD)(p - buffer));
@@ -1605,7 +1603,7 @@ void CConfig::OnBnClickedDefaultTtlGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Default TTL Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_DEFAULT_TTL_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1616,7 +1614,7 @@ void CConfig::OnBnClickedDefaultTtlSet()
 
     BYTE default_ttl = (BYTE)GetHexValueInt(IDC_DEFAULT_TTL);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = default_ttl & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Default TTL Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_DEFAULT_TTL_SET, buffer, (DWORD)(p - buffer));
@@ -1627,7 +1625,7 @@ void CConfig::OnBnClickedGattProxyGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"GATT Proxy Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_GATT_PROXY_GET, buffer, (DWORD)(p - buffer));
 }
@@ -1638,7 +1636,7 @@ void CConfig::OnBnClickedGattProxySet()
 
     BYTE gatt_proxy_state = (BYTE)((CComboBox *)(GetDlgItem(IDC_GATT_PROXY_STATE)))->GetCurSel();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = gatt_proxy_state & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"GATT Proxy Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_GATT_PROXY_SET, buffer, (DWORD)(p - buffer));
@@ -1649,7 +1647,7 @@ void CConfig::OnBnClickedRelayGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
 
     m_trace->SetCurSel(m_trace->AddString(L"Relay Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_RELAY_GET, buffer, (DWORD)(p - buffer));
@@ -1663,7 +1661,7 @@ void CConfig::OnBnClickedRelaySet()
     BYTE relay_retransmit_count = (BYTE)GetHexValueInt(IDC_RELAY_TRANSMIT_COUNT);
     USHORT relay_retransmit_interval = (USHORT)GetHexValueInt(IDC_RELAY_TRANSMIT_INTERVAL);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = relay_state & 0xff;
     *p++ = relay_retransmit_count & 0xff;
     *p++ = relay_retransmit_interval & 0xff;
@@ -1677,7 +1675,7 @@ void CConfig::OnBnClickedFriendGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
 
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
 
     m_trace->SetCurSel(m_trace->AddString(L"Friend Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_FRIEND_GET, buffer, (DWORD)(p - buffer));
@@ -1689,7 +1687,7 @@ void CConfig::OnBnClickedFriendSet()
 
     BYTE friend_state = (BYTE)((CComboBox *)(GetDlgItem(IDC_FRIEND_STATE)))->GetCurSel();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = friend_state & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Friend Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_FRIEND_SET, buffer, (DWORD)(p - buffer));
@@ -1701,7 +1699,7 @@ void CConfig::OnBnClickedKeyRefreshPhaseGet()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NET_KEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Key Refresh Phase Get"));
@@ -1715,7 +1713,7 @@ void CConfig::OnBnClickedKeyRefreshPhaseSet()
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NET_KEY_IDX);
     BYTE phase = (BYTE)GetHexValueInt(IDC_KEY_REFRESH_PHASE);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     *p++ = phase & 0xff;
@@ -1731,7 +1729,7 @@ void CConfig::OnBnClickedModelPubGet()
     USHORT model_pub_company_id = (USHORT)GetHexValueInt(IDC_MODEL_PUB_COMP_ID);
     USHORT model_pub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_PUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_pub_element_addr & 0xff;
     *p++ = (model_pub_element_addr >> 8) & 0xff;
     *p++ = model_pub_company_id & 0xff;
@@ -1756,7 +1754,7 @@ void CConfig::OnBnClickedModelPubSet()
     BYTE   model_pub_retransmit_count = (BYTE)GetHexValueInt(IDC_MODEL_PUB_RETRANSMIT_COUNT);
     USHORT model_pub_retransmit_interval = (USHORT)GetHexValueInt(IDC_MODEL_PUB_RETRANSMIT_INTERVAL);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_pub_element_addr & 0xff;
     *p++ = (model_pub_element_addr >> 8) & 0xff;
     *p++ = model_pub_company_id & 0xff;
@@ -1802,7 +1800,7 @@ void CConfig::OnBnClickedModelSubscriptionAdd()
     USHORT model_sub_comp_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_COMP_ID);
     USHORT model_sub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_sub_element_addr & 0xff;
     *p++ = (model_sub_element_addr >> 8) & 0xff;
     *p++ = model_sub_comp_id & 0xff;
@@ -1837,7 +1835,7 @@ void CConfig::OnBnClickedModelSubscriptionDelete()
     USHORT model_sub_comp_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_COMP_ID);
     USHORT model_sub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_sub_element_addr & 0xff;
     *p++ = (model_sub_element_addr >> 8) & 0xff;
     *p++ = model_sub_comp_id & 0xff;
@@ -1872,7 +1870,7 @@ void CConfig::OnBnClickedModelSubscriptionOverwrite()
     USHORT model_sub_comp_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_COMP_ID);
     USHORT model_sub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_sub_element_addr & 0xff;
     *p++ = (model_sub_element_addr >> 8) & 0xff;
     *p++ = model_sub_comp_id & 0xff;
@@ -1907,7 +1905,7 @@ void CConfig::OnBnClickedModelSubscriptionDeleteAll()
     USHORT model_sub_comp_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_COMP_ID);
     USHORT model_sub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_sub_element_addr & 0xff;
     *p++ = (model_sub_element_addr >> 8) & 0xff;
     *p++ = model_sub_comp_id & 0xff;
@@ -1926,7 +1924,7 @@ void CConfig::OnBnClickedSubscriptionGet()
     USHORT model_sub_comp_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_COMP_ID);
     USHORT model_sub_model_id = (USHORT)GetHexValueInt(IDC_MODEL_SUB_MODEL_ID);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = model_sub_element_addr & 0xff;
     *p++ = (model_sub_element_addr >> 8) & 0xff;
     *p++ = model_sub_comp_id & 0xff;
@@ -1943,7 +1941,7 @@ void CConfig::OnBnClickedNetkeyAdd()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     memset(p, 0, 16);
@@ -1961,7 +1959,7 @@ void CConfig::OnBnClickedNetkeyDelete()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"NetKey Delete"));
@@ -1974,7 +1972,7 @@ void CConfig::OnBnClickedNetkeyUpdate()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     memset(p, 0, 16);
@@ -1992,7 +1990,7 @@ void CConfig::OnBnClickedNetkeyGet()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"NetKey Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_NET_KEY_GET, buffer, (DWORD)(p - buffer));
 }
@@ -2019,7 +2017,7 @@ void CConfig::OnBnClickedAppkeyDelete()
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     USHORT app_key_idx = (USHORT)GetHexValueInt(IDC_APPKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     *p++ = app_key_idx & 0xff;
@@ -2035,7 +2033,7 @@ void CConfig::OnBnClickedAppkeyUpdate()
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     USHORT app_key_idx = (USHORT)GetHexValueInt(IDC_APPKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     *p++ = app_key_idx & 0xff;
@@ -2055,7 +2053,7 @@ void CConfig::OnBnClickedAppkeyGet()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"AppKey Get"));
@@ -2071,7 +2069,7 @@ void CConfig::OnBnClickedModelAppBind()
     USHORT model_id = (USHORT)GetHexValueInt(IDC_MODEL_ID);
     USHORT app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = element_addr & 0xff;
     *p++ = (element_addr >> 8) & 0xff;
     *p++ = company_id & 0xff;
@@ -2093,7 +2091,7 @@ void CConfig::OnBnClickedModelAppUnbind()
     USHORT model_id = (USHORT)GetHexValueInt(IDC_MODEL_ID);
     USHORT app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = element_addr & 0xff;
     *p++ = (element_addr >> 8) & 0xff;
     *p++ = company_id & 0xff;
@@ -2115,7 +2113,7 @@ void CConfig::OnBnClickedModelAppGet()
     USHORT model_id = (USHORT)GetHexValueInt(IDC_MODEL_ID);
     USHORT app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = element_addr & 0xff;
     *p++ = (element_addr >> 8) & 0xff;
     *p++ = company_id & 0xff;
@@ -2132,7 +2130,7 @@ void CConfig::OnBnClickedNodeIdentityGet()
 
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NODE_IDENTITY_NETKEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Node Identity Get"));
@@ -2146,7 +2144,7 @@ void CConfig::OnBnClickedNodeIdentitySet()
     USHORT net_key_idx = (USHORT)GetHexValueInt(IDC_NODE_IDENTITY_NETKEY_IDX);
     BYTE node_identity_state = (BYTE)((CComboBox *)(GetDlgItem(IDC_NODE_IDENTITY_STATE)))->GetCurSel();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     *p++ = node_identity_state;
@@ -2160,7 +2158,7 @@ void CConfig::OnBnClickedLpnPollTimeoutGet()
 
     USHORT lpn_addr = (USHORT)GetHexValueInt(IDC_LPN_ADDR);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = lpn_addr & 0xff;
     *p++ = (lpn_addr >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"LPN Poll Timeout Get"));
@@ -2173,7 +2171,7 @@ void CConfig::OnBnClickedHealthFaultGet()
     USHORT app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     USHORT company_id = (USHORT)GetHexValueInt(IDC_HEALTH_FAULT_COMPANY_ID);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = company_id & 0xff;
     *p++ = (company_id >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Health Fault Get"));
@@ -2187,7 +2185,7 @@ void CConfig::OnBnClickedHealthFaultClear()
     USHORT company_id = (USHORT)GetHexValueInt(IDC_HEALTH_FAULT_COMPANY_ID);
     BYTE   reliable = (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = company_id & 0xff;
     *p++ = (company_id >> 8) & 0xff;
     m_trace->SetCurSel(m_trace->AddString(L"Health Fault Clear"));
@@ -2203,7 +2201,7 @@ void CConfig::OnBnClickedHealthFaultTest()
     BYTE   test_id = (BYTE)GetHexValueInt(IDC_HEALTH_FAULT_TEST_ID);
     BYTE   reliable = (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = test_id;
     *p++ = company_id & 0xff;
     *p++ = (company_id >> 8) & 0xff;
@@ -2216,7 +2214,7 @@ void CConfig::OnBnClickedHealthPeriodGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
     USHORT app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Health Period Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_HEALTH_PERIOD_GET, buffer, (DWORD)(p - buffer));
 }
@@ -2228,7 +2226,7 @@ void CConfig::OnBnClickedHealthPeriodSet()
     BYTE   period = (BYTE)GetHexValueInt(IDC_HEALTH_PERIOD);
     BYTE   reliable = (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck();
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = period;
     m_trace->SetCurSel(m_trace->AddString(L"Health Period Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_HEALTH_PERIOD_SET, buffer, (DWORD)(p - buffer));
@@ -2239,7 +2237,7 @@ void CConfig::OnBnClickedHealthAttentionGet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
     USHORT app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     m_trace->SetCurSel(m_trace->AddString(L"Attention Get"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_HEALTH_ATTENTION_GET, buffer, (DWORD)(p - buffer));
 }
@@ -2251,7 +2249,7 @@ void CConfig::OnBnClickedHealthAttentionSet()
     USHORT dst = (USHORT)GetHexValueInt(IDC_DST);
     USHORT app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = attention;
     m_trace->SetCurSel(m_trace->AddString(L"Attention Timer Set"));
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_HEALTH_ATTENTION_SET, buffer, (DWORD)(p - buffer));
@@ -2319,7 +2317,7 @@ void CConfig::OnBnClickedProxyFilterTypeSet()
     BYTE type = (BYTE)GetHexValueInt(IDC_PROXY_FILTER_TYPE);
     BYTE    buffer[128];
     // special case for filter dst = 0
-    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     WCHAR buf[128];
     wsprintf(buf, L"Proxy: Filter Type:%x", type);
     m_trace->SetCurSel(m_trace->AddString(buf));
@@ -2332,7 +2330,7 @@ void CConfig::OnBnClickedProxyFilterAddrAdd()
     USHORT  addr = (USHORT)GetHexValueInt(IDC_PROXY_FILTER_ADDR);
     BYTE    buffer[128];
     // special case for filter dst = 0
-    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     WCHAR buf[128];
     wsprintf(buf, L"Proxy: Filter Add:%x", addr);
     m_trace->SetCurSel(m_trace->AddString(buf));
@@ -2346,7 +2344,7 @@ void CConfig::OnBnClickedProxyFilterAddrDelete()
     USHORT  addr = (USHORT)GetHexValueInt(IDC_PROXY_FILTER_ADDR);
     BYTE    buffer[128];
     // special case for filter dst = 0
-    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p =wiced_bt_mesh_format_hci_header(0, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     WCHAR buf[128];
     wsprintf(buf, L"Proxy: Filter Add:%x", addr);
     m_trace->SetCurSel(m_trace->AddString(buf));
@@ -2358,7 +2356,7 @@ void CConfig::OnBnClickedProxyFilterAddrDelete()
 void SendGetCompositionData(USHORT dst, BYTE page)
 {
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = page;
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_CONFIG_COMPOSITION_DATA_GET, buffer, (DWORD)(p - buffer));
 }
@@ -2366,7 +2364,7 @@ void SendGetCompositionData(USHORT dst, BYTE page)
 void SendAddAppKey(USHORT dst, USHORT net_key_idx, USHORT app_key_idx, BYTE *p_key)
 {
     BYTE    buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = net_key_idx & 0xff;
     *p++ = (net_key_idx >> 8) & 0xff;
     *p++ = app_key_idx & 0xff;
@@ -2379,7 +2377,7 @@ void SendAddAppKey(USHORT dst, USHORT net_key_idx, USHORT app_key_idx, BYTE *p_k
 void SendBind(USHORT dst, USHORT element_addr, USHORT company_id, USHORT model_id, USHORT app_key_idx)
 {
     BYTE   buffer[128];
-    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, 0, 0, buffer, sizeof(buffer));
+    LPBYTE p = wiced_bt_mesh_format_hci_header(dst, 0xFFFF, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = element_addr & 0xff;
     *p++ = (element_addr >> 8) & 0xff;
     *p++ = company_id & 0xff;

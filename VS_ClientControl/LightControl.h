@@ -3,6 +3,9 @@
 #include "ClientControl.h"
 #include "ControlComm.h"
 
+#define IDT_SEND_VENDOR_DATA        2
+#define SEND_VENDOR_DATA_INTERVAL   4000
+
 // CLightControl dialog
 
 class CLightControl : public CPropertyPage
@@ -20,6 +23,7 @@ public:
     void ProcessEvent(LPBYTE p_data, DWORD len);
     CListBox *m_trace;
 
+    BOOL        m_bVendorModelAdded;
     BOOL        m_scan_started;
     BOOL        m_bConnecting;
     BOOL        m_bScanning;
@@ -50,6 +54,7 @@ public:
 //    WSDownloader *m_pDownloader;
     LPBYTE m_pPatch;
     DWORD m_dwPatchSize;
+    DWORD m_dwPatchOffset;
 
     void ProcessUnprovisionedDevice(uint8_t *p_uuid, uint16_t oob, uint8_t *name, uint8_t name_len);
     void LinkStatus(uint8_t is_connected, uint32_t conn_id, uint16_t addr, uint8_t is_over_gatt);
@@ -75,9 +80,8 @@ protected:
     LRESULT OnWsUpgradeCtrlPoint(WPARAM op, LPARAM lparam);
     LRESULT OnMeshDeviceConnected(WPARAM Instance, LPARAM lparam);
     LRESULT OnMeshDeviceDisconnected(WPARAM Instance, LPARAM lparam);
-    LRESULT OnMeshDeviceAdvReport(WPARAM Instance, LPARAM lparam);
-    LRESULT OnMeshDeviceConnect(WPARAM state, LPARAM param);
-    LRESULT OnMeshDeviceDisconnect(WPARAM state, LPARAM param);
+    void FwDistributionUploadStatus(LPBYTE p_data, DWORD len);
+    void RssiTestResult(LPBYTE p_data, DWORD len);
 
 public:
     virtual BOOL OnSetActive();
@@ -129,6 +133,15 @@ public:
     afx_msg void OnBnClickedSensorConfigure();
     virtual BOOL OnInitDialog();
     afx_msg void OnBnClickedLcConfigure();
+    afx_msg void OnBnClickedDfuUpload();
+    afx_msg void OnBnClickedDfuUpload2();
+    afx_msg void OnBnClickedTraceCoreSet();
+    afx_msg void OnBnClickedTraceModelsSet();
+    afx_msg void OnBnClickedRssiTestStart();
+
+    LRESULT OnAddVendorModel(WPARAM wparam, LPARAM lparam);
+
+    int m_timer_count;
 };
 
 extern CClientControlApp theApp;

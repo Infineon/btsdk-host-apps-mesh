@@ -35,15 +35,13 @@ public:
     USHORT remote_composition_data_len;
 
     // Dialog Data
-    void ProcessCoreProvisionEnd(LPBYTE p_data, DWORD len);
-    void ProcessDescriptorStatus(LPBYTE p_data, DWORD len);
     void ProcessScanCapabilitiesStatus(LPBYTE p_data, DWORD len);
     void ProcessScanStatus(LPBYTE p_data, DWORD len);
     void ProcessScanReport(LPBYTE p_data, DWORD len);
     void ProcessExtendedScanReport(LPBYTE p_data, DWORD len);
     void ProcessProxyDeviceNetworkData(LPBYTE p_data, DWORD len);
     void ProcessProvisionEnd(LPBYTE p_data, DWORD len);
-    void ProcessProvisionLinkStatus(LPBYTE p_data, DWORD len);
+    void ProcessProvisionLinkReport(LPBYTE p_data, DWORD len);
     void ProcessProvisionDeviceCapabilities(LPBYTE p_data, DWORD len);
     void ProcessProvisionOobDataRequest(LPBYTE p_data, DWORD len);
     void ProcessProxyConnectionStatus(LPBYTE p_data, DWORD len);

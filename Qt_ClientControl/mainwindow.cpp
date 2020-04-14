@@ -167,9 +167,8 @@ void network_opened(uint8_t status);
 /*extern "C" */ void fw_distribution_status(uint8_t status, uint16_t current_block_num);
 
 #define DFU_METHOD_PROXY_TO_ALL                     0
-#define DFU_METHOD_PROXY_TO_DEVICE                  1
-#define DFU_METHOD_APP_TO_ALL                       2
-#define DFU_METHOD_APP_TO_DEVICE                    3
+#define DFU_METHOD_APP_TO_ALL                       1
+#define DFU_METHOD_APP_TO_DEVICE                    2
 
 const WCHAR *dfuMethods[] = {
     L"Proxy DFU to all",
@@ -188,7 +187,7 @@ extern void app_mgr_close();
 extern char *mesh_client_get_all_groups(char *in_group);
 extern int mesh_client_move_component_to_group(const char *component_name, const char *from_group_name, const char *to_group_name);
 extern int mesh_client_configure_publication(const char *component_name, uint8_t is_command, const char *method, const char *target_name, int publish_period);
-extern int mesh_client_dfu_get_status(char *distributor_name, mesh_client_dfu_status_t p_dfu_status_callback);
+extern int mesh_client_dfu_get_status(mesh_client_dfu_status_t p_dfu_status_callback, uint32_t interval);
 }
 
 #define STR_TO_CHAR(A) (char *)(A.toStdString().c_str())

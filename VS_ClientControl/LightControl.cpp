@@ -13,6 +13,8 @@
 #include "wiced_bt_mesh_model_defs.h"
 #include "wiced_bt_mesh_provision.h"
 #include "wiced_bt_mesh_db.h"
+#include "MeshPerformance.h"
+
 
 int provision_test = 0;
 DWORD provision_test_scan_unprovisioned_time;
@@ -23,12 +25,19 @@ DWORD provision_test_config_start_time;
 DWORD provision_test_reset_time;
 BOOL  provision_test_bScanning;
 
+extern "C" uint8_t * wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t ttl, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint16_t num_in_group, uint16_t * group_list, uint8_t * p_buffer, uint16_t len);
+extern "C" wiced_bt_mesh_event_t * wiced_bt_mesh_event_from_hci_header(uint8_t * *p_buffer, uint16_t * len);
 
-char *log_filename = "trace.txt";  // if you add full path make sure that directory exists, otherwise it will crash
+extern ClsStopWatch thesw;
+
 // #define MESH_AUTOMATION_ENABLED TRUE
 #if defined(MESH_AUTOMATION_ENABLED) && (MESH_AUTOMATION_ENABLED == TRUE)
 #include "mesh_client_script.h"
 #endif
+
+extern BOOL SendMessageToUDPServer(char* p_msg, UINT len);
+#define WM_MESH_ADD_VENDOR_MODEL    (WM_USER + 111)
+#define LOCAL_DEVICE_TTL                    63
 
 static WCHAR *szDeviceType[] =
 {
@@ -133,6 +142,8 @@ CLightControl::CLightControl()
     m_pPatch = 0;
     m_dwPatchSize = 0;
     m_event = 0;
+    m_timer_count = 0;
+
     FILE *fp = fopen("NetParameters.bin", "rb");
     if (fp)
     {
@@ -195,6 +206,13 @@ BEGIN_MESSAGE_MAP(CLightControl, CPropertyPage)
     ON_BN_CLICKED(IDC_SENSOR_CONFIGURE, &CLightControl::OnBnClickedSensorConfigure)
     ON_BN_CLICKED(IDC_GET_COMPONENT_INFO, &CLightControl::OnBnClickedGetComponentInfo)
     ON_BN_CLICKED(IDC_LC_CONFIGURE, &CLightControl::OnBnClickedLcConfigure)
+    ON_BN_CLICKED(IDC_DFU_UPLOAD, &CLightControl::OnBnClickedDfuUpload)
+    ON_BN_CLICKED(IDC_DFU_UPLOAD2, &CLightControl::OnBnClickedDfuUpload2)
+    ON_BN_CLICKED(IDC_TRACE_CORE_SET, &CLightControl::OnBnClickedTraceCoreSet)
+    ON_BN_CLICKED(IDC_TRACE_MODELS_SET, &CLightControl::OnBnClickedTraceModelsSet)
+    ON_BN_CLICKED(IDC_RSSI_TEST_START, &CLightControl::OnBnClickedRssiTestStart)
+    ON_MESSAGE(WM_MESH_ADD_VENDOR_MODEL, &CLightControl::OnAddVendorModel)
+
 END_MESSAGE_MAP()
 
 BOOL CLightControl::OnSetActive()
@@ -242,6 +260,9 @@ BOOL CLightControl::OnSetActive()
 
     CString sHCDFileName = theApp.GetProfileString(L"LightControl", L"HCDFile", L"");
     SetDlgItemText(IDC_FILENAME, sHCDFileName);
+
+    CString sFwManifestFile = theApp.GetProfileString(L"LightControl", L"FwManifestFile", L"");
+    SetDlgItemText(IDC_FILENAME_UPLOAD, sFwManifestFile);
 
     WCHAR szHostName[128];
     DWORD dw = 128;
@@ -295,6 +316,12 @@ BOOL CLightControl::OnSetActive()
     SetDlgItemInt(IDC_PUBLISH_TTL, DeviceConfig.publish_ttl);
     SetDlgItemInt(IDC_MODEL_PUB_RETRANSMIT_COUNT, DeviceConfig.publish_retransmit_count);
     SetDlgItemInt(IDC_MODEL_PUB_RETRANSMIT_INTERVAL, DeviceConfig.publish_retransmit_interval);
+
+    m_bVendorModelAdded = FALSE;
+
+    SetDlgItemHex(IDC_RSSI_TEST_DST, 0xffff);
+    SetDlgItemInt(IDC_RSSI_TEST_COUNT, 50);
+    SetDlgItemInt(IDC_RSSI_TEST_INTERVAL, 100);
 
     mesh_client_init(&mesh_client_init_callbacks);
     free(p_networks);
@@ -460,8 +487,12 @@ void CLightControl::ProcessEvent(LPBYTE p_data, DWORD len)
 
 void CLightControl::ProcessData(DWORD opcode, LPBYTE p_data, DWORD len)
 {
-    if (opcode == HCI_CONTROL_EVENT_WICED_TRACE)
+    CClientDialog* pSheet = (CClientDialog*)theApp.m_pMainWnd;
+    CLightControl* pDlg = &pSheet->pageLight;
+
+    switch(opcode)
     {
+    case HCI_CONTROL_EVENT_WICED_TRACE:
         if (len >= 2)
         {
             if ((len > 2) && (p_data[len - 2] == '\n'))
@@ -471,18 +502,23 @@ void CLightControl::ProcessData(DWORD opcode, LPBYTE p_data, DWORD len)
             }
             TraceHciPkt(0, p_data, (USHORT)len);
         }
-        //MultiByteToWideChar(CP_ACP, 0, (const char *)p_data, len, trace, sizeof(trace) / sizeof(WCHAR));
-        //m_trace->SetCurSel(m_trace->AddString(trace));
-        return;
-    }
-    else if (opcode == HCI_CONTROL_EVENT_HCI_TRACE)
-    {
+        break;
+
+    case HCI_CONTROL_EVENT_HCI_TRACE:
         TraceHciPkt(p_data[0] + 1, &p_data[1], (USHORT)(len - 1));
-        return;
-    }
-    else
-    {
+        break;
+
+    case HCI_CONTROL_MESH_EVENT_FW_DISTRIBUTION_UPLOAD_STATUS:
+        pDlg->FwDistributionUploadStatus(p_data, len);
+        break;
+
+    case HCI_CONTROL_MESH_EVENT_RSSI_TEST_RESULT:
+        pDlg->RssiTestResult(p_data, len);
+        break;
+
+    default:
         wiced_hci_process_data((uint16_t)opcode, p_data, (uint16_t)len);
+        break;
     }
 }
 
@@ -873,6 +909,16 @@ void CLightControl::ProvisionCompleted()
 void network_opened(uint8_t status)
 {
     Log(L"Network opened");
+
+    CClientDialog* pSheet = (CClientDialog*)theApp.m_pMainWnd;
+#ifndef NO_LIGHT_CONTROL
+    if (pSheet->m_active_page == 1 && theApp.bMeshPerfMode)
+    {
+        CLightControl* pDlg = &pSheet->pageLight;
+        if (pDlg)
+            pDlg->PostMessage(WM_MESH_ADD_VENDOR_MODEL, (WPARAM)0, (LPARAM)0);
+    }
+#endif
 }
 
 void unprovisioned_device(uint8_t *p_uuid, uint16_t oob, uint8_t *name, uint8_t name_len)
@@ -1205,7 +1251,8 @@ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t
     WCHAR s[80];
     MultiByteToWideChar(CP_UTF8, 0, device_name, strlen(device_name) + 1, s, sizeof(s) / sizeof(WCHAR));
 
-    Log(L"VS Data from %s company:%x model:%x opcode:%d", s, company_id, model_id, opcode);
+    UINT8 num_hops = (UINT8)p_data[data_len - 1];
+    num_hops = LOCAL_DEVICE_TTL - num_hops;
 
     WCHAR buf[300] = { 0 };
     int i;
@@ -1219,7 +1266,11 @@ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t
         if (data_len != 0)
             Log(buf);
     }
+
     Log(buf);
+
+    __int64 msTime = thesw.Stop();
+    Log(L"RECV VS Data from %s company:%x model:%x opcode:%d num_hops: %x, roundtrip time: %lld ms", s, company_id, model_id, opcode, num_hops, msTime);
 }
 
 
@@ -1494,6 +1545,18 @@ void CLightControl::OnBnClickedConfigurePub()
     mesh_client_configure_publication(device_name, client_control, publish_method, publish_to_name, publish_period);
 }
 
+bool isGroup(char* p_name)
+{
+    char* p;
+    char* p_groups = mesh_client_get_all_groups(NULL);
+    for (p = p_groups; p != NULL && *p != 0; p += (strlen(p) + 1))
+    {
+        if (strcmp(p_name, p) == NULL)
+            return true;
+    }
+    return false;
+}
+
 void CLightControl::OnBnClickedOnOffGet()
 {
     char name[80];
@@ -1507,7 +1570,7 @@ void CLightControl::OnBnClickedOnOffSet()
     GetDlgItemTextA(m_hWnd, IDC_CONTROL_DEVICE, name, sizeof(name));
     int on_off = ((CComboBox *)GetDlgItem(IDC_ON_OFF_TARGET))->GetCurSel();
     if (on_off >= 0)
-        mesh_client_on_off_set(name, on_off, WICED_TRUE, DEFAULT_TRANSITION_TIME, 0);
+        mesh_client_on_off_set(name, on_off, !isGroup(name), DEFAULT_TRANSITION_TIME, 0);
 }
 
 void CLightControl::OnBnClickedLevelGet()
@@ -1522,7 +1585,7 @@ void CLightControl::OnBnClickedLevelSet()
     char name[80];
     GetDlgItemTextA(m_hWnd, IDC_CONTROL_DEVICE, name, sizeof(name));
     short target_level = (short)GetDlgItemInt(IDC_LEVEL_TARGET);
-    mesh_client_level_set(name, target_level, WICED_TRUE, DEFAULT_TRANSITION_TIME, 0);
+    mesh_client_level_set(name, target_level, !isGroup(name), DEFAULT_TRANSITION_TIME, 0);
 }
 
 void CLightControl::OnBnClickedLightnessGet()
@@ -1538,7 +1601,7 @@ void CLightControl::OnBnClickedLightnessSet()
     int target_lightness = (int)GetDlgItemInt(IDC_LIGHT_LIGHTNESS_TARGET);
     char name[80];
     GetDlgItemTextA(m_hWnd, IDC_CONTROL_DEVICE, name, sizeof(name));
-    mesh_client_lightness_set(name, target_lightness, WICED_TRUE, DEFAULT_TRANSITION_TIME, 0);
+    mesh_client_lightness_set(name, target_lightness, !isGroup(name), DEFAULT_TRANSITION_TIME, 0);
 }
 
 void CLightControl::OnBnClickedLightHslGet()
@@ -1555,7 +1618,7 @@ void CLightControl::OnBnClickedLightHslSet()
     int target_saturation = (int)GetDlgItemInt(IDC_LIGHT_HSL_SATURATION_VALUE);
     char name[80];
     GetDlgItemTextA(m_hWnd, IDC_CONTROL_DEVICE, name, sizeof(name));
-    mesh_client_hsl_set(name, target_lightness, target_hue, target_saturation, WICED_TRUE, DEFAULT_TRANSITION_TIME, 0);
+    mesh_client_hsl_set(name, target_lightness, target_hue, target_saturation, !isGroup(name), DEFAULT_TRANSITION_TIME, 0);
 }
 
 void CLightControl::OnBnClickedLightCtlGet()
@@ -1572,7 +1635,36 @@ void CLightControl::OnBnClickedLightCtlSet()
     SHORT target_delta_uv = (SHORT)GetDlgItemInt(IDC_LIGHT_CTL_DELTA_UV_TARGET);
     char name[80];
     GetDlgItemTextA(m_hWnd, IDC_CONTROL_DEVICE, name, sizeof(name));
-    mesh_client_ctl_set(name, target_lightness, target_temperature, target_delta_uv, WICED_TRUE, DEFAULT_TRANSITION_TIME, 0);
+    mesh_client_ctl_set(name, target_lightness, target_temperature, target_delta_uv, !isGroup(name), DEFAULT_TRANSITION_TIME, 0);
+}
+
+LRESULT CLightControl::OnAddVendorModel(WPARAM wparam, LPARAM lparam)
+{
+    {
+        m_bVendorModelAdded = TRUE;
+
+        uint8_t buffer[6];
+        buffer[0] = 0xC1;               // Opcode 1  // Upper layer provided opcode
+        buffer[0] = buffer[0] & ~0xC0;  // To make the vendor opcode spec compliant, turn off upper two bits ==> 0x01
+                                        // Peer device will still receive 0xC1 from their access layer.
+        buffer[1] = 0x31;
+        buffer[2] = 0x01;
+
+        buffer[3] = 0x02;               // Opcode 2
+        buffer[4] = 0x31;
+        buffer[5] = 0x01;
+
+        // int mesh_client_add_vendor_model(uint16_t company_id, uint16_t model_id, uint8_t num_opcodes, uint8_t *buffer, uint16_t data_len);
+        // CASE 1: When number of opcodes and data buffer is provided only messages that match both (opcode AND company_id) are received
+        // mesh_client_add_vendor_model(0x131, 0x01, 0x02, buffer, (uint16_t)sizeof (buffer));
+
+        // CASE 2: When number of opcodes is set to "0x0", messages for all opcodes for the company_id (0x131) are received
+        mesh_client_add_vendor_model(0x131, 0x01, 0x0, buffer, (uint16_t)sizeof(buffer));
+
+        Sleep(1000);
+    }
+
+    return S_OK;
 }
 
 void CLightControl::OnBnClickedVsData()
@@ -1583,6 +1675,8 @@ void CLightControl::OnBnClickedVsData()
     BYTE buffer[400];
     DWORD len = GetHexValue(IDC_TC_NET_LEVEL_TRX_PDU, buffer, sizeof(buffer));
 
+    // Start ms timer to track elapsed time. Send data to vendor server
+    thesw.Start();
     mesh_client_vendor_data_set(name, 0x131, 0x01, 0x01, buffer, (uint16_t)len);
 }
 
@@ -1634,7 +1728,7 @@ void CLightControl::ProcessVendorSpecificData(LPBYTE p_data, DWORD len)
     p_data += 5;
     len -= 5;
 
-    WCHAR buf[100];
+    WCHAR buf[200];
     wsprintf(buf, L"VS Data from addr:%x element:%x app_key_idx:%x %d bytes:", src, app_key_idx, element_idx, len);
     m_trace->SetCurSel(m_trace->AddString(buf));
 
@@ -1743,8 +1837,8 @@ void CLightControl::OnOtaUpgradeContinue()
     m_dwPatchSize = ftell(fPatch);
     rewind(fPatch);
     if (m_pPatch)
-        delete m_pPatch;
-    m_pPatch = (LPBYTE)new BYTE[m_dwPatchSize];
+        free(m_pPatch);
+    m_pPatch = (LPBYTE)malloc(m_dwPatchSize);
 
     m_dwPatchSize = (DWORD)fread(m_pPatch, 1, m_dwPatchSize, fPatch);
     fclose(fPatch);
@@ -1758,8 +1852,11 @@ void CLightControl::OnOtaUpgradeContinue()
         LeaveCriticalSection(&cs);
         MessageBox(L"This device may not support OTA FW Upgrade. Select another device.", L"Error", MB_OK);
 
-        if (m_pPatch)
-            delete m_pPatch;
+        if (m_pPatch != NULL)
+        {
+            free(m_pPatch);
+            m_pPatch = NULL;
+        }
         return;
     }
     LeaveCriticalSection(&cs);
@@ -1876,16 +1973,14 @@ LRESULT CLightControl::OnMeshDeviceDisconnected(WPARAM Instance, LPARAM lparam)
     return S_OK;
 }
 
-
-
 void CLightControl::OnBnClickedBrowseOta()
 {
-    static TCHAR BASED_CODE szFilter[] = _T("OTA Files (*.ota.bin)|*.OTA.BIN|");
+    static TCHAR BASED_CODE szFilter[] = _T("JSON Files (*.json)|*.*|");
 
     CFileDialog dlgFile(TRUE, NULL, NULL, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, szFilter);
     if (dlgFile.DoModal() == IDOK)
     {
-        SetDlgItemText(IDC_FILENAME, dlgFile.GetPathName());
+        SetDlgItemText(IDC_FILENAME_UPLOAD, dlgFile.GetPathName());
     }
 }
 
@@ -2111,4 +2206,382 @@ BOOL CLightControl::OnInitDialog()
 
     return TRUE;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
+}
+
+/* This function parses firmware manifest file which should follow following format
+{
+    "manifest": {
+        "firmware": {
+            "firmware_file": "firmware.bin",
+            "metadata_file" : "metadata.bin",
+            "firmware_id" : "010246573A312E332E35"
+        }
+    }
+}
+*/
+#define FIRMWARE_UPLOAD_BLOCK_SIZE  512
+
+#define FIRMWARE_FILE_TAG   "\"firmware_file\""
+#define FIRMWARE_ID_TAG     "\"firmware_id\""
+#define METADATA_FILE_TAG   "\"metadata_file\""
+
+BOOL ParseFwManifestFile(char* p_manifest, char* fw_filename, int filename_len, char* fw_id, int fw_id_len, char* fw_metadata, int metadata_len)
+{
+    char* p = p_manifest;
+    char* p_end;
+    char* p_start;
+    char* p_tag;
+    char* p_out;
+    int i;
+    int out_len;
+
+    while (TRUE)
+    {
+        if ((p = strchr(p, '{')) == NULL)
+            break;
+        p++;
+        if ((p = strstr(p, "\"manifest\"")) == NULL)
+            break;
+        p += strlen("\"manifest\"");
+        if ((p = strchr(p, ':')) == NULL)
+            break;
+        p++;
+        if ((p = strchr(p, '{')) == NULL)
+            break;
+        p++;
+        if ((p = strstr(p, "\"firmware\"")) == NULL)
+            break;
+        p += strlen("\"firmware\"");
+        if ((p = strchr(p, ':')) == NULL)
+            break;
+        p++;
+        if ((p = strchr(p, '{')) == NULL)
+            break;
+        p++;
+        p_start = p;
+        for (i = 0; i < 3; i++)
+        {
+            p = p_start;
+            if (i == 0)
+            {
+                p_tag = FIRMWARE_FILE_TAG;
+                p_out = fw_filename;
+                out_len = filename_len;
+            }
+            else if (i == 1)
+            {
+                p_tag = FIRMWARE_ID_TAG;
+                p_out = fw_id;
+                out_len = fw_id_len;
+            }
+            else
+            {
+                p_tag = METADATA_FILE_TAG;
+                p_out = fw_metadata;
+                out_len = metadata_len;
+            }
+            if ((p = strstr(p, p_tag)) == NULL)
+                break;
+            p += strlen(p_tag);
+            if ((p = strchr(p, ':')) == NULL)
+                break;
+            p++;
+            if ((p = strchr(p, '\"')) == NULL)
+                break;
+            p++;
+            if ((p_end = strchr(p, '\"')) == NULL)
+                break;
+            if (p_end - p >= out_len)
+                break;
+            strncpy(p_out, p, p_end - p);
+            p_out[p_end - p] = 0;
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+
+uint8_t process_nibble(char n)
+{
+    if ((n >= '0') && (n <= '9'))
+    {
+        n -= '0';
+    }
+    else if ((n >= 'A') && (n <= 'F'))
+    {
+        n = ((n - 'A') + 10);
+    }
+    else if ((n >= 'a') && (n <= 'f'))
+    {
+        n = ((n - 'a') + 10);
+    }
+    else
+    {
+        n = (char)0xff;
+    }
+    return (n);
+}
+
+void CLightControl::OnBnClickedDfuUpload()
+{
+    long filesize, metadata_size;
+    char sFileName[MAX_PATH] = { 0 };
+    int i;
+
+    GetDlgItemTextA(m_hWnd, IDC_FILENAME_UPLOAD, sFileName, MAX_PATH);
+    if (sFileName[0] == 0)
+    {
+        Log(L"Specify valid configuration file and Address");
+        return;
+    }
+    FILE* fp = fopen(sFileName, "r");
+    if (!fp)
+    {
+        Log(L"Failed to open manifest file");
+        return;
+    }
+    fseek(fp, 0L, SEEK_END);
+    filesize = ftell(fp);
+
+    char* p_manifest = (char*)malloc(filesize);
+    if (p_manifest == NULL)
+        return;
+
+    rewind(fp);
+    fread(p_manifest, 1, filesize, fp);
+    fclose(fp);
+
+    char fw_filename[256];
+    char fw_id[32];
+    char fw_metadata[256];
+
+    if (!ParseFwManifestFile(p_manifest, fw_filename, sizeof(fw_filename), fw_id, sizeof(fw_id), fw_metadata, sizeof(fw_metadata)))
+    {
+        Log(L"Invalid FW Manifest File");
+        free(p_manifest);
+        return;
+    }
+    free(p_manifest);
+
+    WCHAR name[512] = { 0 };
+    MultiByteToWideChar(CP_ACP, 0, (const char*)sFileName, strlen(sFileName), name, sizeof(name));
+    BOOL rc = theApp.WriteProfileString(L"LightControl", L"FwManifestFile", name);
+
+    // We will open metadata file in the same directory as .json file
+    // find last / or \ and replace the name.
+    char* pFilename = sFileName;
+    char* p1;
+    while (TRUE)
+    {
+        if ((p1 = strchr(pFilename, '/')) != NULL)
+        {
+            pFilename = p1 + 1;
+            continue;
+        }
+        if ((p1 = strchr(pFilename, '\\')) != NULL)
+        {
+            pFilename = p1 + 1;
+            continue;
+        }
+        break;
+    }
+    strcpy(pFilename, fw_metadata);
+
+    fp = fopen(sFileName, "rb");
+    if (!fp)
+    {
+        Log(L"Failed to open metadata file");
+        return;
+    }
+    fseek(fp, 0L, SEEK_END);
+    metadata_size = ftell(fp);
+
+    if (metadata_size > 255)
+    {
+        Log(L"Metadata longer than 255");
+        return;
+    }
+    uint8_t* p_metadata = (uint8_t*)malloc(metadata_size);
+    if (p_metadata == NULL)
+        return;
+
+    rewind(fp);
+    fread(p_metadata, 1, metadata_size, fp);
+    fclose(fp);
+
+    strcpy(pFilename, fw_filename);
+
+    fp = fopen(sFileName, "rb");
+    if (!fp)
+    {
+        Log(L"Failed to open firmware file");
+        return;
+    }
+    fseek(fp, 0L, SEEK_END);
+    m_dwPatchSize = ftell(fp);
+
+    if (m_pPatch)
+        free(m_pPatch);
+    m_pPatch = (uint8_t*)malloc(m_dwPatchSize);
+    if (m_pPatch == NULL)
+        return;
+
+    rewind(fp);
+    fread(m_pPatch, 1, m_dwPatchSize, fp);
+    fclose(fp);
+
+    uint8_t buffer[512];
+    LPBYTE p = buffer;
+
+#define UPLOAD_TTL          0x7f
+#define UPLOAD_TIMEOUT      0       // Actual timeout is 10*(Upload Timeout + 1). For upload over UART 10 seconds should be enough
+#define UPLOAD_BLOB_ID_LEN  8
+    *p++ = UPLOAD_TTL;                      // TTL to use in a firmward image upload
+    *p++ = UPLOAD_TIMEOUT & 0xff;
+    *p++ = (UPLOAD_TIMEOUT >> 8) & 0xff;    // timeout
+    memset(p, 0, 8);
+    p += 8;
+    *p++ = m_dwPatchSize & 0xff;            // Firmware size in octets
+    *p++ = (m_dwPatchSize >> 8) & 0xff;
+    *p++ = (m_dwPatchSize >> 16) & 0xff;
+    *p++ = (m_dwPatchSize >> 24) & 0xff;
+    *p++ = metadata_size & 0xff;            // Metadata length size in octets
+    memcpy(p, p_metadata, metadata_size);
+    p += metadata_size;
+
+    for (i = 0; i < (int)strlen(fw_id); i += 2)
+    {
+        uint8_t n1 = process_nibble(fw_id[i]);
+        uint8_t n2 = process_nibble(fw_id[i + 1]);
+        if ((n1 == 0xff) || (n2 == 0xff))
+        {
+            Log(L"Bad firmware ID");
+            return;
+        }
+        *p++ = (n1 << 4) + n2;
+    }
+    m_dwPatchOffset = 0;
+    m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_FW_DISTRIBUTION_UPLOAD_START, buffer, (DWORD)(p - buffer));
+
+/*
+    FILE* fHCD = NULL;
+    LONG  nVeryFirstAddress = 0;
+
+
+    m_fw_download_active = TRUE;
+    rc = FwDownload(sFileName);
+    m_fw_download_active = FALSE;
+    // mesh_client_upload_start
+    */
+}
+
+void CLightControl::FwDistributionUploadStatus(LPBYTE p_data, DWORD len)
+{
+    uint8_t status = p_data[0];
+    uint8_t phase = p_data[1];
+    uint8_t distribution_status = p_data[2];
+    uint8_t buffer[4 + FIRMWARE_UPLOAD_BLOCK_SIZE];
+    uint8_t* p = buffer;
+    DWORD dwBytes;
+    int i;
+
+    Log(L"Upload status:%d phase:%d distribution state:%d offset:%d devices:", status, phase, distribution_status, m_dwPatchOffset);
+    WCHAR buf[200] = {0};
+    for (i = 0; i < (int)(len - 3) / 2; i++)
+        wsprintf(&buf[wcslen(buf)], L"%02x ", p_data[3 + i * 2] + (p_data[4 + i * 2] << 8));
+    Log(buf);
+    if ((status == 0) && (m_dwPatchSize != 0))
+    {
+        if (m_dwPatchOffset == m_dwPatchSize)
+        {
+            m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_FW_DISTRIBUTION_UPLOAD_FINISH, &status, 1);
+            m_dwPatchOffset = 0xFFFFFFFF;
+            return;
+        }
+        else if (m_dwPatchOffset == 0xFFFFFFFF)
+        {
+            if (phase == WICED_BT_MESH_FW_UPLOAD_PHASE_TRANSFER_SUCCESS)
+            {
+
+            }
+        }
+        else
+        {
+            *p++ = m_dwPatchOffset & 0xff;
+            *p++ = (m_dwPatchOffset >> 8) & 0xff;
+            *p++ = (m_dwPatchOffset >> 16) & 0xff;
+            *p++ = (m_dwPatchOffset >> 24) & 0xff;
+            dwBytes = m_dwPatchOffset + FIRMWARE_UPLOAD_BLOCK_SIZE > m_dwPatchSize ? m_dwPatchSize - m_dwPatchOffset : FIRMWARE_UPLOAD_BLOCK_SIZE;
+            memcpy(p, &m_pPatch[m_dwPatchOffset], dwBytes);
+            m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_FW_DISTRIBUTION_UPLOAD_DATA, buffer, dwBytes + 4);
+            m_dwPatchOffset += dwBytes;
+        }
+    }
+}
+
+void CLightControl::OnBnClickedDfuUpload2()
+{
+    m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_FW_DISTRIBUTION_UPLOAD_GET_STATUS, NULL, 0);
+}
+
+
+void CLightControl::OnBnClickedTraceCoreSet()
+{
+    int core_level = ((CComboBox*)GetDlgItem(IDC_TRACE_CORE_LEVEL))->GetCurSel();
+    DWORD core_modules = (DWORD)GetHexValueInt(IDC_TRACE_CORE_MODULES);
+    if (core_level >= 0)
+    {
+        uint8_t buffer[5];
+        uint8_t* p = buffer;
+        *p++ = core_level & 0xff;
+        *p++ = core_modules & 0xff;
+        *p++ = (core_modules >> 8) & 0xff;
+        *p++ = (core_modules >> 16) & 0xff;
+        *p++ = (core_modules >> 24) & 0xff;
+        m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TRACE_CORE_SET, buffer, 5);
+    }
+}
+
+
+void CLightControl::OnBnClickedTraceModelsSet()
+{
+    int models_level = ((CComboBox*)GetDlgItem(IDC_TRACE_MODELS_LEVEL))->GetCurSel();
+    if (models_level >= 0)
+    {
+        uint8_t buffer[1];
+        uint8_t* p = buffer;
+        *p++ = models_level & 0xff;
+        m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_TRACE_MODELS_SET, buffer, 1);
+    }
+}
+
+void CLightControl::OnBnClickedRssiTestStart()
+{
+    DWORD dst = GetHexValueInt(IDC_RSSI_TEST_DST);
+    DWORD count = GetDlgItemInt(IDC_RSSI_TEST_COUNT);
+    DWORD interval = GetDlgItemInt(IDC_RSSI_TEST_INTERVAL);
+    uint8_t buffer[5];
+    uint8_t* p = buffer;
+    *p++ = dst & 0xff;
+    *p++ = (dst >> 8) & 0xff;
+    *p++ = count & 0xff;
+    *p++ = (count >> 8) & 0xff;
+    if (interval < 100)
+    {
+        interval = 100;
+        SetDlgItemInt(IDC_RSSI_TEST_INTERVAL, interval);
+    }
+    *p++ = (interval / 10) & 0xff;
+    Log(L"Start RSSI test DST:%04x count:%d interval:%dms", dst, count, interval);
+    m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_RSSI_TEST_START, buffer, 5);
+}
+
+void CLightControl::RssiTestResult(LPBYTE p_data, DWORD len)
+{
+    uint16_t src = p_data[0] + (p_data[1] << 8);
+    uint16_t report_addr = p_data[2] + (p_data[3] << 8);
+    uint16_t rx_count = p_data[4] + (p_data[5] << 8);
+    int8_t rx_rssi = p_data[6];
+
+    Log(L"Test result %04x from %04x received:%d average rssi:%d\n", src, report_addr, rx_count, rx_rssi);
 }

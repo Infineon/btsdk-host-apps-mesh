@@ -32,10 +32,92 @@ int BaudRateSelected = -1;
 uint64_t TickCountInitValue;
 #endif
 
+extern "C" void ods(char* fmt_str, ...);
+
+/////////////////////////////////////////////////////////////////////////////
+// CMeshCommandLineInfo
+
+
+class CMeshCommandLineInfo : public CCommandLineInfo
+{
+public:
+    CMeshCommandLineInfo();
+
+    // Overrides
+    void ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLast);
+
+    // Implementation
+    BOOL        m_bIsUDPClient;
+    BOOL        m_bIsUDPServer;
+    BOOL        m_bPerfTestMode;
+    CString     sIPAddr; //IP Addr
+
+};
+
+CMeshCommandLineInfo::CMeshCommandLineInfo() : CCommandLineInfo()
+{
+    m_bIsUDPClient = FALSE;
+    m_bIsUDPServer = FALSE;
+    m_bPerfTestMode = FALSE;
+    sIPAddr.Empty();
+}
+
+/**************************************************
+ command line
+ /c IP Address      Start UDP Client and send messages to the provided IP Address of the server
+ /s                 Start UDP Server
+**************************************************/
+void CMeshCommandLineInfo::ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLast)
+{
+    CString csParam(lpszParam);
+    csParam.MakeUpper();
+
+    if (bSwitch)
+    {
+        switch (*csParam.Left(1).GetBuffer())
+        {
+        case 'S': // UDP Server
+            m_bIsUDPServer = TRUE;
+            break;
+
+        case 'C': //UDP Client
+            m_bIsUDPClient = TRUE;
+            break;
+
+        case 'P': //Mesh Performance Testing
+            m_bPerfTestMode = TRUE;
+            break;
+        }
+
+    }
+    else
+    {
+        if (m_bIsUDPClient)
+        {
+            sIPAddr = csParam.Right(csParam.GetLength());
+            ods("IP Address:%S", &lpszParam[0]);
+            ods("IP Address2:%S", sIPAddr.GetBuffer());
+        }
+    }
+}
+
+extern BOOL SetupUDPServer();
+extern BOOL SetupUDPClientSocket(char* pipstr);
+extern char localIPStr[];
+
+void EnablePrintfAtMFC()
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        FILE* pCout;
+        freopen_s(&pCout, "CONOUT$", "w", stdout);
+    }
+}
+
 // CClientControlApp
 
 BEGIN_MESSAGE_MAP( CClientControlApp, CWinApp )
-	ON_COMMAND( ID_HELP, &CWinApp::OnHelp )
+    ON_COMMAND( ID_HELP, &CWinApp::OnHelp )
 END_MESSAGE_MAP( )
 
 
@@ -43,10 +125,11 @@ END_MESSAGE_MAP( )
 
 CClientControlApp::CClientControlApp( )
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-}
+    // TODO: add construction code here,
+    // Place all significant initialization in InitInstance
 
+    bMeshPerfMode = FALSE;
+}
 
 // The one and only CClientControlApp object
 
@@ -76,8 +159,35 @@ BOOL CClientControlApp::InitInstance( )
     // Activate "Windows Native" visual manager for enabling themes in MFC controls
     CMFCVisualManager::SetDefaultManager( RUNTIME_CLASS( CMFCVisualManagerWindows ) );
 
-    CCommandLineInfo cmdInfo;
+    EnablePrintfAtMFC();
+
+    CMeshCommandLineInfo cmdInfo;
     ParseCommandLine( cmdInfo );
+
+    if(cmdInfo.m_bIsUDPServer)
+    {
+        ods("We need to start the UDP Server");
+        SetupUDPServer();
+        Sleep(1000);
+        ods("Starting local UDP Client\n");
+        ods("Connecting to IP Address of UDP Server: %s", localIPStr);
+        SetupUDPClientSocket(localIPStr);
+    }
+
+    if (cmdInfo.m_bIsUDPClient)
+    {
+        ods("Starting UDP Client\n");
+        ods("IP Address3: %S", cmdInfo.sIPAddr.GetBuffer());
+        char    ipaddr[30] = { 0 };
+        sprintf_s(ipaddr, sizeof(ipaddr), "%S", cmdInfo.sIPAddr.GetBuffer());
+        SetupUDPClientSocket(ipaddr);
+    }
+
+    if (cmdInfo.m_bPerfTestMode)
+    {
+        ods("Starting application in Mesh performance testing mode\n");
+        bMeshPerfMode = TRUE;
+    }
 
     // Change the registry key under which our settings are stored
     SetRegistryKey( _T( "Cypress" ) );
@@ -150,6 +260,10 @@ CClientDialog::CClientDialog(UINT nIDCaption, CWnd* pParentWnd, UINT iSelectPage
 #endif
     AddPage(&pageMain);
     AddPage(&pageConfig);
+    // Add Tab for Mesh Performance Testing only if enabled via commandline
+    if (theApp.bMeshPerfMode)
+        AddPage(&pageMeshPerf);
+
 #if defined( MESH_AUTOMATION_ENABLED ) && (MESH_AUTOMATION_ENABLED == TRUE)
     if (pSocketWin == NULL)
         pSocketWin = new CSocketWindow();
@@ -165,6 +279,11 @@ CClientDialog::CClientDialog(LPCTSTR pszCaption, CWnd* pParentWnd, UINT iSelectP
 #endif
     AddPage(&pageMain);
     AddPage(&pageConfig);
+
+    // Add Tab for Mesh Performance Testing only if enabled via commandline
+    if (theApp.bMeshPerfMode)
+        AddPage(&pageMeshPerf);
+
 #if defined( MESH_AUTOMATION_ENABLED ) && (MESH_AUTOMATION_ENABLED == TRUE)
     if (pSocketWin == NULL)
         pSocketWin = new CSocketWindow();
