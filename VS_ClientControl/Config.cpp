@@ -18,7 +18,6 @@
 extern "C" void wiced_hci_process_data(uint16_t opcode, uint8_t *p_buffer, uint16_t len);
 #endif
 
-ULONG conn_id;
 BYTE dev_key[16] = { 0 };
 BYTE configured_dev_key[16] = { 0 };
 BYTE pub_key_type;
@@ -26,10 +25,57 @@ BYTE pub_key_type;
 // CConfig dialog
 
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_PUB_KEY   1   ///< Provisioner: Enter public key()
+#define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_OUTPUT    2   /**< Provisioner: Enter output OOB value(size, action) displaied on provisioning node */
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_STATIC    3   ///< Provisioner: Enter static OOB value(size)
+#define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_INPUT     4   /**< Provisioning node: Enter input OOB value(size, action) displaied on provisioner */
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_INPUT   5   ///< Provisioner: Select and display input OOB value(size, action)
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_OUTPUT  6   ///< Provisioning node: Select and display output OOB value(size, action)
 #define WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_STOP    7   ///< Provisioner and Provisioning node: Stop displaying OOB value
+
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_BLINK                 0x00  /**< Blink */
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_BEEP                  0x01  /**< Beep */
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_VIBRATE               0x02  /**< Vibrate */
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_DISP_NUM              0x03  /**< Output Numeric */
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_DISP_ALPH             0x04  /**< Output Alphanumeric */
+#define WICED_BT_MESH_PROVISION_OUT_OOB_ACT_MAX                   0x15  /**< Max number of supported actions */
+
+#define WICED_BT_MESH_PROVISION_IN_OOB_ACT_PUSH                   0x00  /**< Push */
+#define WICED_BT_MESH_PROVISION_IN_OOB_ACT_TWIST                  0x01  /**< Twist */
+#define WICED_BT_MESH_PROVISION_IN_OOB_ACT_ENTER_NUM              0x02  /**< Input Number */
+#define WICED_BT_MESH_PROVISION_IN_OOB_ACT_ENTER_STR              0x03  /**< Input Alphanumeric */
+#define WICED_BT_MESH_PROVISION_IN_OOB_ACT_MAX                    0x15  /**< Max number of supported actions */
+
+static WCHAR* wchOobType[] =
+{
+    L"invalid",
+    L"Enter Pub Key",
+    L"invalid",
+    L"Enter Static OOB",
+    L"Enter Input",
+    L"Display Input",
+    L"Display Output",
+    L"Display stop",
+    L"invalid",
+};
+
+static WCHAR* wchOutputOobAction[] =
+{
+    L"Blink",
+    L"Beep",
+    L"Vibrate",
+    L"Display Number",
+    L"Display Alphanumeric",
+    L"Invalid",
+};
+
+static WCHAR* wchInputOobAction[] =
+{
+    L"Push",
+    L"Twist",
+    L"Enter Number",
+    L"Enter String",
+    L"Invalid",
+};
 
 extern void TraceHciPkt(BYTE type, BYTE *buffer, USHORT length);
 extern "C" uint8_t *wiced_bt_mesh_format_hci_header(uint16_t dst, uint16_t app_key_idx, uint8_t element_idx, uint8_t reliable, uint8_t send_segmented, uint8_t ttl, uint8_t retransmit_count, uint8_t retransmit_interval, uint8_t reply_timeout, uint8_t *p_buffer, uint16_t len);
@@ -97,7 +143,6 @@ void COutputOob::OnBnClickedOk()
 
 IMPLEMENT_DYNAMIC(CConfig, CPropertyPage)
 
-extern ULONG conn_id;
 BYTE auth_action;
 extern BYTE dev_key[16];
 extern BYTE pub_key_type;
@@ -657,7 +702,7 @@ void CConfig::ProcessProvisionDeviceCapabilities(LPBYTE p_data, DWORD len)
 
 void CConfig::ProcessProvisionOobDataRequest(LPBYTE p_data, DWORD len)
 {
-    wiced_bt_mesh_event_t *p_event = wiced_bt_mesh_event_from_hci_header(&p_data, (uint16_t *)&len);
+    wiced_bt_mesh_event_t* p_event = wiced_bt_mesh_event_from_hci_header(&p_data, (uint16_t*)&len);
     if (p_event == NULL)
         return;
     free(p_event);
@@ -670,11 +715,28 @@ void CConfig::ProcessProvisionOobDataRequest(LPBYTE p_data, DWORD len)
     BYTE oob_data[64];
     BYTE oob_static[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8};
 
-    wsprintf(buf, L"Provision: Get OOB Data oob type:%d oob size:%d oob_action:%d", static_oob_type, oob_size, oob_action);
+    if ((static_oob_type == WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_OUTPUT) && (oob_action < 5))
+        wsprintf(buf, L"Provision: Get OOB Data oob type:%s oob size:%d oob_action:%s", wchOobType[static_oob_type], oob_size, wchOutputOobAction[oob_action]);
+    else if ((static_oob_type == WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_INPUT) && (oob_action < 4))
+        wsprintf(buf, L"Provision: Get OOB Data oob type:%s oob size:%d oob_action:%s", wchOobType[static_oob_type], oob_size, wchInputOobAction[oob_action]);
+    else
+        wsprintf(buf, L"Provision: Get OOB Data oob type:%s oob size:%d oob_action:%d", wchOobType[static_oob_type], oob_size, oob_action);
+
     m_trace->SetCurSel(m_trace->AddString(buf));
 
     if (static_oob_type == WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_STOP)
         return;
+
+    if (static_oob_type == WICED_BT_MESH_PROVISION_GET_OOB_TYPE_DISPLAY_OUTPUT)
+    {
+        wsprintf(buf, L"OOB Data ");
+        for (int i = 5; i < 5 + oob_size; i++)
+        {
+            wsprintf(&buf[wcslen(buf)], L"%d ", p_data[i]);
+        }
+        m_trace->SetCurSel(m_trace->AddString(buf));
+        return;
+    }
 
     if (static_oob_type == WICED_BT_MESH_PROVISION_GET_OOB_TYPE_ENTER_STATIC)
     {
@@ -722,17 +784,13 @@ void CConfig::ProcessProvisionOobDataRequest(LPBYTE p_data, DWORD len)
             sscanf(&dlg.m_output_value[2 * i], "%02d", &val);
             oob_data[i] = val & 0xff;
         }
-        wsprintf(buf, L"Provision: OOB data conn_id:%x", conn_id);
+        wsprintf(buf, L"Provision: OOB data: %d", oob_data[0]);
         m_trace->SetCurSel(m_trace->AddString(buf));
     }
     USHORT dst = (USHORT)GetHexValueInt(IDC_LOCAL_ADDR);
     p_event = wiced_bt_mesh_create_event(0, MESH_COMPANY_ID_BT_SIG, 0, dst, 0xffff);
-    wiced_bt_mesh_provision_oob_value_data_t oob;
 
-    oob.data_size = oob_data_size;
-    memcpy(oob.data, oob_data, oob_data_size);
-
-    wiced_bt_mesh_provision_client_set_oob(p_event, &oob);
+    wiced_bt_mesh_provision_client_set_oob(p_event, oob_data, oob_data_size);
 }
 
 void CConfig::ProcessProxyConnectionStatus(LPBYTE p_data, DWORD len)
@@ -1380,7 +1438,7 @@ void CConfig::OnBnClickedProvisionConnect()
     data.procedure = WICED_BT_MESH_PROVISION_PROCEDURE_PROVISION;
 
     WCHAR buf[128];
-    wsprintf(buf, L"Provision: conn_id:%x addr:%x", conn_id, dst);
+    wsprintf(buf, L"Provision: addr:%x", dst);
     m_trace->SetCurSel(m_trace->AddString(buf));
 
     wiced_bt_mesh_provision_connect(p_event, &data, use_gatt);

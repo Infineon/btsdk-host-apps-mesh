@@ -1348,7 +1348,7 @@ void MainWindow::on_btnSetVen()
     DWORD len = GetHexValue(ED_TO_CHAR(ui->edVendorData), buffer, sizeof(buffer));
 
 //    mesh_client_vendor_data_set(STR_TO_CHAR(ui->cbControl->currentText()), buffer, (uint16_t)len);
-    mesh_client_vendor_data_set(STR_TO_CHAR(ui->cbControl->currentText()), 0x131, 0x01, 0x01, buffer, (uint16_t)len);
+    mesh_client_vendor_data_set(STR_TO_CHAR(ui->cbControl->currentText()), 0x131, 0x01, 0x01, 0x0, buffer, (uint16_t)len);
 
 }
 

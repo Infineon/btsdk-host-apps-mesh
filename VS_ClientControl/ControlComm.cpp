@@ -148,7 +148,7 @@ BOOL ComHelper::OpenPort(int port, int baudRate)
         memset(&comStat, 0, sizeof(comStat));
         ClearCommError(m_handle, &dwError, &comStat);
     }
-    Log (L"Opened COM%d at speed: %u", port, baudRate);
+    Log (L"Opened COM%d at speed: %u\n", port, baudRate);
     m_bClosing = FALSE;
     m_hShutdown = CreateEvent(NULL, FALSE, FALSE, NULL);
 

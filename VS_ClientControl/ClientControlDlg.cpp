@@ -15,19 +15,20 @@
 #include "LightControl.h"
 #include "wiced_bt_mesh_model_defs.h"
 #include "wiced_mesh_client.h"
+#include "hci_control_api.h"
 #include "MeshPerf.h"
 
 ComHelper *m_ComHelper;
 
 BYTE world_day_of_week[7] = { 1 << 6, 1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4, 1 << 5 };
 
-#include "hci_control_api.h"
-
 #ifndef assert
 #define assert
 #endif
 
-char* log_filename = "trace.txt";  // if you add full path make sure that directory exists, otherwise it will crash
+#define MESH_CLIENTCONTROL_LOG_TO_FILE 0
+
+char log_filename[MAX_PATH] = { 0 };
 
 extern BOOL SendMessageToUDPServer(char* p_msg, UINT len);
 
@@ -328,10 +329,6 @@ BOOL CClientControlDlg::OnSetActive()
 {
     static BOOL initialized = FALSE;
     CPropertyPage::OnSetActive();
-//BOOL CClientControlDlg::OnInitDialog()
-//{
-//    CPropertyPage::OnInitDialog();
-    //CDialogEx::OnInitDialog();
 
 #ifndef NO_LIGHT_CONTROL
     ((CClientDialog *)theApp.m_pMainWnd)->m_active_page = 2;
@@ -693,7 +690,6 @@ HCURSOR CClientControlDlg::OnQueryDragIcon()
 void HandleWicedEvent(DWORD opcode, DWORD len, BYTE *p_data)
 {
     CClientDialog *pSheet = (CClientDialog *)theApp.m_pMainWnd;
-    //CPropertyPage *p = (CClientControlDlg *)pSheet->GetActivePage();
 
     switch (pSheet->m_active_page)
     {
@@ -731,7 +727,6 @@ void HandleWicedEvent(DWORD opcode, DWORD len, BYTE *p_data)
 void HandleHciEvent(BYTE *p_data, DWORD len)
 {
     CClientDialog *pSheet = (CClientDialog *)theApp.m_pMainWnd;
-//    CPropertyPage *p = (CClientControlDlg *)pSheet->GetActivePage();
 
     switch (pSheet->m_active_page)
     {
@@ -1139,15 +1134,21 @@ DWORD CClientControlDlg::GetHandle(DWORD id)
 
 void Log(WCHAR *fmt, ...)
 {
-    WCHAR   msg[1001];
+    WCHAR   msg[1002];
+
     va_list cur_arg;
+    SYSTEMTIME st;
+    GetLocalTime(&st);
 
     memset(msg, 0, sizeof(msg));
+
+    int len = swprintf_s(msg, 1002, L"%02d:%02d:%02d.%03d ", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+
     va_start(cur_arg, fmt);
-    _vsnwprintf_s(msg, 1000, fmt, cur_arg);
+    vswprintf(&msg[wcslen(msg)], (sizeof(msg) / sizeof(WCHAR)) - wcslen(msg), fmt, cur_arg);
     va_end(cur_arg);
 
-    if (log_filename != NULL)
+    if (strlen(log_filename))
     {
         FILE* fp;
         fopen_s(&fp, log_filename, "a");
@@ -1194,7 +1195,7 @@ void Log(WCHAR *fmt, ...)
             if (theApp.bMeshPerfMode)
             {
                 CMeshPerformance* pDlg = &pSheet->pageMeshPerf;
-                if (pDlg && pDlg->m_hWnd && ::IsWindow(pDlg->m_hWnd) && ::IsWindow(pDlg->m_trace->m_hWnd) && pDlg->m_bPerfTestRunning)
+                if (pDlg && pDlg->m_hWnd && ::IsWindow(pDlg->m_hWnd) && ::IsWindow(pDlg->m_trace->m_hWnd))
                     pDlg->m_trace->SetCurSel(pDlg->m_trace->AddString(msg));
             }
 
@@ -1208,16 +1209,22 @@ extern "C" void Log(char *fmt, ...)
 {
     char   msg[1002];
     WCHAR  wmsg[2004];
-    va_list cur_arg;
 
     memset(msg, 0, sizeof(msg));
-    va_start(cur_arg, fmt);
-    _vsnprintf_s(msg, 1000, fmt, cur_arg);
-    va_end(cur_arg);
+
+    va_list marker = NULL;
+    va_start(marker, fmt);
+
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+
+    int len = sprintf_s(msg, sizeof(msg), "%02d:%02d:%02d.%03d ", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+    vsnprintf_s(&msg[len], sizeof(msg) - len, _TRUNCATE, fmt, marker);
+    va_end(marker);
 
     MultiByteToWideChar(CP_UTF8, 0, msg, -1, wmsg, sizeof(wmsg) / 2);
 
-    if (log_filename != NULL)
+    if (strlen(log_filename))
     {
         FILE* fp;
         fopen_s(&fp, log_filename, "a");
@@ -1265,7 +1272,7 @@ extern "C" void Log(char *fmt, ...)
             if (theApp.bMeshPerfMode)
             {
                 CMeshPerformance* pDlg = &pSheet->pageMeshPerf;
-                if (pDlg && pDlg->m_hWnd && ::IsWindow(pDlg->m_hWnd) && ::IsWindow(pDlg->m_trace->m_hWnd) && pDlg->m_bPerfTestRunning)
+                if (pDlg && pDlg->m_hWnd && ::IsWindow(pDlg->m_hWnd) && ::IsWindow(pDlg->m_trace->m_hWnd))
                     pDlg->m_trace->SetCurSel(pDlg->m_trace->AddString(wmsg));
             }
             return;

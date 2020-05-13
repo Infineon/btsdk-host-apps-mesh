@@ -50,6 +50,7 @@ public:
     BOOL        m_bIsUDPClient;
     BOOL        m_bIsUDPServer;
     BOOL        m_bPerfTestMode;
+    BOOL        m_bLogToFile;
     CString     sIPAddr; //IP Addr
 
 };
@@ -59,6 +60,7 @@ CMeshCommandLineInfo::CMeshCommandLineInfo() : CCommandLineInfo()
     m_bIsUDPClient = FALSE;
     m_bIsUDPServer = FALSE;
     m_bPerfTestMode = FALSE;
+    m_bLogToFile = FALSE;
     sIPAddr.Empty();
 }
 
@@ -87,6 +89,10 @@ void CMeshCommandLineInfo::ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLas
         case 'P': //Mesh Performance Testing
             m_bPerfTestMode = TRUE;
             break;
+
+        case 'T': //Enable logging to file
+            m_bLogToFile = TRUE;
+            break;
         }
 
     }
@@ -104,6 +110,8 @@ void CMeshCommandLineInfo::ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLas
 extern BOOL SetupUDPServer();
 extern BOOL SetupUDPClientSocket(char* pipstr);
 extern char localIPStr[];
+
+extern char log_filename[];
 
 void EnablePrintfAtMFC()
 {
@@ -188,6 +196,16 @@ BOOL CClientControlApp::InitInstance( )
         ods("Starting application in Mesh performance testing mode\n");
         bMeshPerfMode = TRUE;
     }
+
+    if (cmdInfo.m_bLogToFile)
+    {
+        strcpy(log_filename, "trace.txt");  // if you add full path make sure that directory exists, otherwise it will crash
+    }
+
+
+#if  defined(MESH_CLIENTCONTROL_LOG_TO_FILE) && (MESH_CLIENTCONTROL_LOG_TO_FILE == 1)
+    strcpy(log_filename,"trace.txt");  // if you add full path make sure that directory exists, otherwise it will crash
+#endif
 
     // Change the registry key under which our settings are stored
     SetRegistryKey( _T( "Cypress" ) );

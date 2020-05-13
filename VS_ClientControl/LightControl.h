@@ -3,9 +3,6 @@
 #include "ClientControl.h"
 #include "ControlComm.h"
 
-#define IDT_SEND_VENDOR_DATA        2
-#define SEND_VENDOR_DATA_INTERVAL   4000
-
 // CLightControl dialog
 
 class CLightControl : public CPropertyPage
@@ -84,6 +81,7 @@ protected:
     void RssiTestResult(LPBYTE p_data, DWORD len);
 
 public:
+    void updateProvisionerUuid();
     virtual BOOL OnSetActive();
     afx_msg void OnClose();
     afx_msg void OnCbnSelchangeComPort();
@@ -140,8 +138,6 @@ public:
     afx_msg void OnBnClickedRssiTestStart();
 
     LRESULT OnAddVendorModel(WPARAM wparam, LPARAM lparam);
-
-    int m_timer_count;
 };
 
 extern CClientControlApp theApp;

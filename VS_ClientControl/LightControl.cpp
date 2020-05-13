@@ -71,7 +71,7 @@ typedef struct
     int publish_retransmit_interval;   ///< Interval in milliseconds between retransmissions
 } device_config_params_t;
 
-device_config_params_t DeviceConfig = { 1, 1, 1, 1, 3, 100, 63, 3, 100, 0, 63, 0, 500 };
+device_config_params_t DeviceConfig = { 1, 1, 1, 1, 3, 100, 8, 3, 100, 0, 8, 0, 500 };
 
 void network_opened(uint8_t status);
 /*extern "C" */ void unprovisioned_device(uint8_t *uuid, uint16_t oob, uint8_t *name_len, uint8_t name);
@@ -86,7 +86,7 @@ void network_opened(uint8_t status);
 /*extern "C" */ void hsl_status(const char *device_name, uint16_t lightness, uint16_t hue, uint16_t saturation, uint32_t remaining_time);
 /*extern "C" */ void ctl_status(const char *device_name, uint16_t present_lightness, uint16_t present_temperature, uint16_t target_lightness, uint16_t target_temperature, uint32_t remaining_time);
 /*extern "C" */ void sensor_status(const char *device_name, int property_id, uint8_t value_len, uint8_t *value);
-/*extern "C" */ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t *p_data, uint16_t data_len);
+/*extern "C" */ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t ttl, uint8_t *p_data, uint16_t data_len);
 /*extern "C" */ void fw_distribution_status(uint8_t status, uint8_t progress);
 
 WCHAR *dfuMethods[] = {
@@ -142,7 +142,6 @@ CLightControl::CLightControl()
     m_pPatch = 0;
     m_dwPatchSize = 0;
     m_event = 0;
-    m_timer_count = 0;
 
     FILE *fp = fopen("NetParameters.bin", "rb");
     if (fp)
@@ -261,6 +260,12 @@ BOOL CLightControl::OnSetActive()
     CString sHCDFileName = theApp.GetProfileString(L"LightControl", L"HCDFile", L"");
     SetDlgItemText(IDC_FILENAME, sHCDFileName);
 
+    CString sStaticOobData = theApp.GetProfileString(L"LightControl", L"StaticOobData", L"");
+    SetDlgItemText(IDC_OOB_DATA, sStaticOobData);
+
+    BOOL bUseStaticOobData = theApp.GetProfileInt(L"LightControl", L"UseStaticOobData", 0);
+    ((CButton *)GetDlgItem(IDC_STATIC_OOB_DATA))->SetCheck(bUseStaticOobData);
+
     CString sFwManifestFile = theApp.GetProfileString(L"LightControl", L"FwManifestFile", L"");
     SetDlgItemText(IDC_FILENAME_UPLOAD, sFwManifestFile);
 
@@ -270,19 +275,7 @@ BOOL CLightControl::OnSetActive()
 
     SetDlgItemText(IDC_PROVISIONER, szHostName);
 
-    CString sProvisionerUuid = theApp.GetProfileString(L"LightControl", L"ProvisionerUuid", L"");
-    if (sProvisionerUuid == "")
-    {
-        WCHAR sProvisionerUuid[33] = { 0 };
-        for (int i = 0; i < 8; i++)
-            sprintf(&provisioner_uuid[i * 4], "%04X", rand());
-        MultiByteToWideChar(CP_UTF8, 0, provisioner_uuid, 32, sProvisionerUuid, 32);
-        theApp.WriteProfileStringW(L"LightControl", L"ProvisionerUuid", sProvisionerUuid);
-    }
-    else
-    {
-        WideCharToMultiByte(CP_UTF8, 0, sProvisionerUuid.GetBuffer(), -1, provisioner_uuid, 33, 0, FALSE);
-    }
+    updateProvisionerUuid();
 
     ((CComboBox *)GetDlgItem(IDC_NETWORK))->ResetContent();
 
@@ -297,10 +290,8 @@ BOOL CLightControl::OnSetActive()
         p += strlen(p) + 1;
         num_networks++;
     }
-    if (num_networks)
-    {
+    if (num_networks != 0)
         ((CComboBox *)GetDlgItem(IDC_NETWORK))->SetCurSel(0);
-    }
 
     ((CButton *)GetDlgItem(IDC_GATT_PROXY))->SetCheck(DeviceConfig.is_gatt_proxy);
     ((CButton *)GetDlgItem(IDC_FRIEND))->SetCheck(DeviceConfig.is_friend);
@@ -543,7 +534,7 @@ void CLightControl::ProcessUnprovisionedDevice(uint8_t *p_uuid, uint16_t oob, ui
     wcscpy(buf, L"Unprovisioned Device UUID:");
     wcscat(buf, uuid);
 
-    wsprintf(&buf[wcslen(buf)], L" OOB:%x", oob, szName);
+    wsprintf(&buf[wcslen(buf)], L" OOB:%x", oob);
 
     m_trace->SetCurSel(m_trace->AddString(buf));
 
@@ -594,6 +585,17 @@ void CLightControl::OnBnClickedProvision()
     uint8_t uuid[16];
     num = GetHexValue(IDC_PROVISION_UUID, uuid, 16);
 
+    BOOL is_static_oob_data = ((CButton*)GetDlgItem(IDC_STATIC_OOB_DATA))->GetCheck();
+    uint8_t oob_data_len = 0;
+    uint8_t oob_data[16];
+    if (is_static_oob_data)
+        oob_data_len = (uint8_t)GetHexValue(IDC_OOB_DATA, oob_data, 16);
+
+    CString sStaticOobData;
+    GetDlgItemText(IDC_OOB_DATA, sStaticOobData);
+    theApp.WriteProfileString(L"LightControl", L"StaticOobData", sStaticOobData);
+    theApp.WriteProfileInt(L"LightControl", L"UseStaticOobData", is_static_oob_data);
+
     char group_name[80];
     GetDlgItemTextA(m_hWnd, IDC_CURRENT_GROUP, group_name, sizeof(group_name));
 
@@ -625,7 +627,10 @@ void CLightControl::OnBnClickedProvision()
     mesh_client_set_device_config(NULL, DeviceConfig.is_gatt_proxy, DeviceConfig.is_friend, DeviceConfig.is_relay, DeviceConfig.send_net_beacon, DeviceConfig.relay_xmit_count, DeviceConfig.relay_xmit_interval, DeviceConfig.default_ttl, DeviceConfig.net_xmit_count, DeviceConfig.net_xmit_interval);
     mesh_client_set_publication_config(DeviceConfig.publish_credential_flag, DeviceConfig.publish_retransmit_count, DeviceConfig.publish_retransmit_interval, DeviceConfig.publish_ttl);
 
-    mesh_client_provision(node_name + (3 * num), group_name, uuid, identify_duration);
+    if (!is_static_oob_data || (oob_data_len == 0))
+        mesh_client_provision(node_name + (3 * num), group_name, uuid, identify_duration);
+    else
+        mesh_client_provision_with_oob(node_name + (3 * num), group_name, uuid, identify_duration, oob_data, oob_data_len);
 }
 
 
@@ -640,6 +645,9 @@ void CLightControl::OnBnClickedNetworkCreate()
         MessageBoxA(m_hWnd, mesh_name, "Network Already Exists", MB_ICONERROR);
     else
     {
+        // try to update provisioner uuid if required.
+        updateProvisionerUuid();
+
         int res = mesh_client_network_create(provisioner_name, provisioner_uuid, mesh_name);
         if (res == MESH_CLIENT_SUCCESS)
         {
@@ -672,6 +680,20 @@ void CLightControl::OnBnClickedNetworkDelete()
             WCHAR s[80];
             MultiByteToWideChar(CP_UTF8, 0, mesh_name, strlen(mesh_name) + 1, s, sizeof(s) / sizeof(WCHAR));
             Log(L"Network %s deleted\n", s);
+
+            // Clear the UUID after all mesh network deleted.
+            char *p = mesh_client_get_all_networks();
+            int num_networks = 0;
+            while (p != NULL && *p != NULL)
+            {
+                p += strlen(p) + 1;
+                num_networks++;
+            }
+            if (num_networks < 1)
+            {
+                WCHAR sProvisionerUuid[33] = { 0 };
+                theApp.WriteProfileStringW(L"LightControl", L"ProvisionerUuid", sProvisionerUuid);
+            }
         }
         else
         {
@@ -1246,13 +1268,23 @@ void sensor_status(const char *device_name, int property_id, uint8_t value_len, 
     Log(msg);
 }
 
-void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t *p_data, uint16_t data_len)
+extern void RecordLatencyData(const char* device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t tx_hops, uint8_t rx_hops, int elapsed_time);
+
+void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t ttl, uint8_t *p_data, uint16_t data_len)
 {
+    //__int64 msTime = thesw.Stop();
+
     WCHAR s[80];
     MultiByteToWideChar(CP_UTF8, 0, device_name, strlen(device_name) + 1, s, sizeof(s) / sizeof(WCHAR));
 
-    UINT8 num_hops = (UINT8)p_data[data_len - 1];
-    num_hops = LOCAL_DEVICE_TTL - num_hops;
+    // We expect a minimum of 5 bytes, TTL (1) + elapsed time (4)
+    if (data_len < 5)
+        return;
+
+    DWORD roundtrip_time = p_data[data_len-4] + (p_data[data_len-3] << 8) + (p_data[data_len-2] << 16) + (p_data[data_len-1] << 24);
+
+    uint8_t tx_hops = LOCAL_DEVICE_TTL - (uint8_t)p_data[data_len - 5];
+    uint8_t rx_hops = LOCAL_DEVICE_TTL - ttl;
 
     WCHAR buf[300] = { 0 };
     int i;
@@ -1269,10 +1301,14 @@ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t
 
     Log(buf);
 
-    __int64 msTime = thesw.Stop();
-    Log(L"RECV VS Data from %s company:%x model:%x opcode:%d num_hops: %x, roundtrip time: %lld ms", s, company_id, model_id, opcode, num_hops, msTime);
-}
+    Log(L"RECV VS Data from %s company:%x model:%x opcode:%d tx_hops: %x, rx_hops: %x, roundtrip time: %d ms\n",
+        s, company_id, model_id, opcode, tx_hops, rx_hops, roundtrip_time);
 
+    if (theApp.bMeshPerfMode)
+    {
+        RecordLatencyData(device_name, company_id, model_id, opcode, tx_hops, rx_hops, (int)roundtrip_time);
+    }
+}
 
 void CLightControl::OnBnClickedNodeReset()
 {
@@ -1287,7 +1323,6 @@ void CLightControl::OnSelchangeNetwork()
 {
     OnBnClickedNetworkClose();
 }
-
 
 void CLightControl::OnBnClickedConfigureNewName()
 {
@@ -1468,7 +1503,7 @@ void CLightControl::OnCbnSelchangeConfigureMoveDevice()
         {
             if (is_component_in_group(device_name, p1))
             {
-                MultiByteToWideChar(CP_UTF8, 0, p, -1, szName, sizeof(szName) / sizeof(WCHAR));
+                MultiByteToWideChar(CP_UTF8, 0, p1, -1, szName, sizeof(szName) / sizeof(WCHAR));
                 p_move_from_groups->AddString(szName);
             }
             char* p_groups2 = mesh_client_get_all_groups(p1);
@@ -1675,9 +1710,7 @@ void CLightControl::OnBnClickedVsData()
     BYTE buffer[400];
     DWORD len = GetHexValue(IDC_TC_NET_LEVEL_TRX_PDU, buffer, sizeof(buffer));
 
-    // Start ms timer to track elapsed time. Send data to vendor server
-    thesw.Start();
-    mesh_client_vendor_data_set(name, 0x131, 0x01, 0x01, buffer, (uint16_t)len);
+    mesh_client_vendor_data_set(name, 0x131, 0x01, 0x01, 0, buffer, (uint16_t)len);
 }
 
 void CLightControl::OnCbnSelchangeControlDevice()
@@ -1998,6 +2031,9 @@ void CLightControl::OnBnClickedNetworkImport()
         return;
     }
 
+    // try to update provisioner uuid if required.
+    updateProvisionerUuid();
+
     // Load OTA FW file into memory
     fseek(fJsonFile, 0, SEEK_END);
     size_t json_string_size = ftell(fJsonFile);
@@ -2194,6 +2230,43 @@ extern "C" int mesh_client_scan_unprovisioned_UI_Ex(int start, uint8_t *p_uuid)
         provision_test_bScanning = FALSE;
     }
     return 0;
+}
+
+static void mesh_clent_dlg_gen_uuid(BYTE *uuid)
+{
+    // Generate version 4 UUID (Random) per rfc4122:
+    // - Set the two most significant bits(bits 6 and 7) of the
+    //   clock_seq_hi_and_reserved to zero and one, respectively.
+    // - Set the four most significant bits(bits 12 through 15) of the
+    //   time_hi_and_version field to the 4 - bit version number.
+    // - Set all the other bits to randomly(or pseudo - randomly) chosen values.
+    *(UINT32 *)&uuid[0] = (UINT32)rand();
+    *(UINT32 *)&uuid[4] = (UINT32)rand();
+    *(UINT32 *)&uuid[8] = (UINT32)rand();
+    *(UINT32 *)&uuid[12] = (UINT32)rand();
+    // The version field is 4.
+    uuid[6] = (uuid[6] & 0x0f) | 0x40;
+    // The variant field is 10B
+    uuid[8] = (uuid[8] & 0x3f) | 0x80;
+}
+
+void CLightControl::updateProvisionerUuid()
+{
+    CString sProvisionerUuid = theApp.GetProfileString(L"LightControl", L"ProvisionerUuid", L"");
+    if (sProvisionerUuid == "")
+    {
+        BYTE uuid[16];
+        mesh_clent_dlg_gen_uuid(uuid);
+        WCHAR sProvisionerUuid[33] = { 0 };
+        for (int i = 0; i < 16; i++)
+            sprintf(&provisioner_uuid[i * 2], "%02X", uuid[i]);
+        MultiByteToWideChar(CP_UTF8, 0, provisioner_uuid, 32, sProvisionerUuid, 32);
+        theApp.WriteProfileStringW(L"LightControl", L"ProvisionerUuid", sProvisionerUuid);
+    }
+    else
+    {
+        WideCharToMultiByte(CP_UTF8, 0, sProvisionerUuid.GetBuffer(), -1, provisioner_uuid, 33, 0, FALSE);
+    }
 }
 
 BOOL CLightControl::OnInitDialog()
@@ -2490,6 +2563,7 @@ void CLightControl::FwDistributionUploadStatus(LPBYTE p_data, DWORD len)
     for (i = 0; i < (int)(len - 3) / 2; i++)
         wsprintf(&buf[wcslen(buf)], L"%02x ", p_data[3 + i * 2] + (p_data[4 + i * 2] << 8));
     Log(buf);
+    Log(L"\n");
     if ((status == 0) && (m_dwPatchSize != 0))
     {
         if (m_dwPatchOffset == m_dwPatchSize)
@@ -2572,7 +2646,7 @@ void CLightControl::OnBnClickedRssiTestStart()
         SetDlgItemInt(IDC_RSSI_TEST_INTERVAL, interval);
     }
     *p++ = (interval / 10) & 0xff;
-    Log(L"Start RSSI test DST:%04x count:%d interval:%dms", dst, count, interval);
+    Log(L"Start RSSI test DST:%04x count:%d interval:%dms\n", dst, count, interval);
     m_ComHelper->SendWicedCommand(HCI_CONTROL_MESH_COMMAND_RSSI_TEST_START, buffer, 5);
 }
 
