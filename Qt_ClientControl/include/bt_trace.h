@@ -5,10 +5,6 @@
 /*  Function    this file contains definitions for implementing the         */
 /*              diagnostic trace message service.                           */
 /*                                                                          */
-/*                                                                          */
-/*  Copyright (c) 1999-2014, Cypress Semiconductor., All Rights Reserved.           */
-/*  Cypress Semiconductor Bluetooth Core. Proprietary and confidential.                  */
-/*                                                                          */
 /****************************************************************************/
 #ifndef BT_TRACE_H
 #define BT_TRACE_H

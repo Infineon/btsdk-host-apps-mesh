@@ -5,9 +5,6 @@
 **  Function    this file contains definitions that are shared between
 **              units in the Bluetooth system such as events.
 **
-**  Copyright (c) 1999-2015, Cypress Semiconductor., All Rights Reserved.
-**  Cypress Semiconductor Bluetooth Core. Proprietary and confidential.
-**
 ****************************************************************************/
 
 #ifndef BT_TYPES_H
