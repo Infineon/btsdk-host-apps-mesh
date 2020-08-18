@@ -1370,7 +1370,7 @@ BOOL CClientControlDlg::WicedBtMeshCoreSend(void *pc, const unsigned char* param
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = buffer;
@@ -1398,7 +1398,7 @@ void CClientControlDlg::OnBnClickedBatteryLevelGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1412,7 +1412,7 @@ void CClientControlDlg::OnBnClickedSceneRegisterGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1431,7 +1431,7 @@ void CClientControlDlg::OnBnClickedSceneRecall()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1456,7 +1456,7 @@ void CClientControlDlg::OnBnClickedSceneGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1473,7 +1473,7 @@ void CClientControlDlg::OnBnClickedSceneStore()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1492,7 +1492,7 @@ void CClientControlDlg::OnBnClickedSceneDelete()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1516,7 +1516,7 @@ void CClientControlDlg::OnBnClickedBatteryLevelSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     *p++ = battery_level;
@@ -1558,7 +1558,7 @@ void CClientControlDlg::OnBnClickedLocationGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1581,7 +1581,7 @@ void CClientControlDlg::OnBnClickedLocationLocalGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -1767,7 +1767,7 @@ void CClientControlDlg::ReadValuesSendMsg(BYTE local_global)
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE msg[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, msg, sizeof(msg));
@@ -2129,7 +2129,7 @@ void CClientControlDlg::OnBnClickedOnOffGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2148,7 +2148,7 @@ void CClientControlDlg::OnBnClickedOnOffSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2796,7 +2796,7 @@ void CClientControlDlg::OnBnClickedLevelGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2814,7 +2814,7 @@ void CClientControlDlg::OnBnClickedLevelSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2843,7 +2843,7 @@ void CClientControlDlg::OnBnClickedDeltaSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2874,7 +2874,7 @@ void CClientControlDlg::OnBnClickedMoveSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2920,7 +2920,7 @@ void CClientControlDlg::OnBnClickedDefaultTransitionTimeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2937,7 +2937,7 @@ void CClientControlDlg::OnBnClickedDefaultTransitionTimeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2976,7 +2976,7 @@ void CClientControlDlg::OnBnClickedPowerOnOffGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -2993,7 +2993,7 @@ void CClientControlDlg::OnBnClickedPowerOnOffSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3107,7 +3107,7 @@ void CClientControlDlg::OnBnClickedPowerLevelGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3125,7 +3125,7 @@ void CClientControlDlg::OnBnClickedPowerLevelSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3149,7 +3149,7 @@ void CClientControlDlg::OnBnClickedPowerLevelLastGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3163,7 +3163,7 @@ void CClientControlDlg::OnBnClickedPowerLevelDefaultGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3180,7 +3180,7 @@ void CClientControlDlg::OnBnClickedPowerLevelDefaultSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3198,7 +3198,7 @@ void CClientControlDlg::OnBnClickedPowerLevelRangeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3215,7 +3215,7 @@ void CClientControlDlg::OnBnClickedPowerLevelRangeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3236,7 +3236,7 @@ void CClientControlDlg::OnBnClickedPowerLevelStatus()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3312,7 +3312,7 @@ void CClientControlDlg::OnBnClickedPropertiesGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3332,7 +3332,7 @@ void CClientControlDlg::OnBnClickedPropertyGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3364,7 +3364,7 @@ void CClientControlDlg::OnBnClickedPropertySet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3392,7 +3392,7 @@ void CClientControlDlg::OnBnClickedLightLightnessGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3416,7 +3416,7 @@ void CClientControlDlg::OnBnClickedLightLightnessSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3445,7 +3445,7 @@ void CClientControlDlg::OnBnClickedLightLightnessLastGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3464,7 +3464,7 @@ void CClientControlDlg::OnBnClickedLightLightnessDefaultGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3486,7 +3486,7 @@ void CClientControlDlg::OnBnClickedLightLightnessDefaultSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3509,7 +3509,7 @@ void CClientControlDlg::OnBnClickedLightLightnessRangeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3532,7 +3532,7 @@ void CClientControlDlg::OnBnClickedLightLightnessRangeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3575,7 +3575,7 @@ void CClientControlDlg::OnBnClickedSensorMsgSend()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
     ((CEdit *)GetDlgItem(IDC_SENSOR_PROP_ID))->GetWindowTextW(propIdStr);
@@ -3880,7 +3880,7 @@ void CClientControlDlg::OnBnClickedLightHslGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3901,7 +3901,7 @@ void CClientControlDlg::OnBnClickedLightHslSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3930,7 +3930,7 @@ void CClientControlDlg::OnBnClickedLightHslHueGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3949,7 +3949,7 @@ void CClientControlDlg::OnBnClickedLightHslHueSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3974,7 +3974,7 @@ void CClientControlDlg::OnBnClickedLightHslSaturationGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -3993,7 +3993,7 @@ void CClientControlDlg::OnBnClickedLightHslSaturationSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4017,7 +4017,7 @@ void CClientControlDlg::OnBnClickedLightHslTargetGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4031,7 +4031,7 @@ void CClientControlDlg::OnBnClickedLightHslDefaultGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4052,7 +4052,7 @@ void CClientControlDlg::OnBnClickedLightHslDefaultSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4075,7 +4075,7 @@ void CClientControlDlg::OnBnClickedLightHslRangeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4095,7 +4095,7 @@ void CClientControlDlg::OnBnClickedLightHslRangeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4119,7 +4119,7 @@ void CClientControlDlg::OnBnClickedLightCtlGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4140,7 +4140,7 @@ void CClientControlDlg::OnBnClickedLightCtlSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4168,7 +4168,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4188,7 +4188,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4215,7 +4215,7 @@ void CClientControlDlg::OnBnClickedLightCtlDefaultGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4236,7 +4236,7 @@ void CClientControlDlg::OnBnClickedLightCtlDefaultSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4259,7 +4259,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureRangeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4279,7 +4279,7 @@ void CClientControlDlg::OnBnClickedLightCtlTemperatureRangeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4299,7 +4299,7 @@ void CClientControlDlg::OnBnClickedLightXylGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4320,7 +4320,7 @@ void CClientControlDlg::OnBnClickedLightXylSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4354,7 +4354,7 @@ void CClientControlDlg::OnBnClickedLightXylTargetGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4368,7 +4368,7 @@ void CClientControlDlg::OnBnClickedLightXylDefaultGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4388,7 +4388,7 @@ void CClientControlDlg::OnBnClickedLightXylDefaultSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4411,7 +4411,7 @@ void CClientControlDlg::OnBnClickedLightXylRangeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4430,7 +4430,7 @@ void CClientControlDlg::OnBnClickedLightXylRangeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4454,7 +4454,7 @@ void CClientControlDlg::OnBnClickedLightLcModeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4472,7 +4472,7 @@ void CClientControlDlg::OnBnClickedLightLcModeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4488,7 +4488,7 @@ void CClientControlDlg::OnBnClickedLightLcOccupancyModeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4507,7 +4507,7 @@ void CClientControlDlg::OnBnClickedLightLcOccupancyModeSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4533,7 +4533,7 @@ void CClientControlDlg::OnBnClickedLightLcOnOffGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4554,7 +4554,7 @@ void CClientControlDlg::OnBnClickedLightLcOnOffSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, reliable, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -4576,7 +4576,7 @@ void CClientControlDlg::OnBnClickedLightLcPropertyGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     USHORT id = lightLcProp[((CComboBox *)GetDlgItem(IDC_LIGHT_LC_PROPERTY))->GetCurSel()].PropId;
     BYTE buffer[128];
@@ -4595,7 +4595,7 @@ void CClientControlDlg::OnBnClickedLightLcPropertySet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     USHORT id = lightLcProp[((CComboBox *)GetDlgItem(IDC_LIGHT_LC_PROPERTY))->GetCurSel()].PropId;
     BYTE buffer[128];
@@ -4634,7 +4634,7 @@ void CClientControlDlg::OnBnClickedVsData()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[400];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 0, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5092,7 +5092,7 @@ void CClientControlDlg::OnBnClickedSchedulerRegisterGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5114,7 +5114,7 @@ void CClientControlDlg::OnBnClickedSchedulerActionGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5138,7 +5138,7 @@ void CClientControlDlg::OnBnClickedSchedulerActionSet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, (BYTE)((CButton *)GetDlgItem(IDC_RELIABLE_SEND))->GetCheck(), 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5314,7 +5314,7 @@ void CClientControlDlg::OnBnClickedTimeGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5395,7 +5395,7 @@ void CClientControlDlg::OnBnClickedTimeSet()
     if (!((CButton*)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5422,7 +5422,7 @@ void CClientControlDlg::OnBnClickedTimezoneGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5441,7 +5441,7 @@ void CClientControlDlg::OnBnClickedTimezoneSet()
     if (!((CButton*)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5463,7 +5463,7 @@ void CClientControlDlg::OnBnClickedTaiUtcDeltaGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5482,7 +5482,7 @@ void CClientControlDlg::OnBnClickedTaiUtcDeltaSet()
     if (!((CButton*)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5505,7 +5505,7 @@ void CClientControlDlg::OnBnClickedTimeAuthorityGet()
     if (!((CButton *)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5518,7 +5518,7 @@ void CClientControlDlg::OnBnClickedTimeAuthoritySet()
     if (!((CButton*)GetDlgItem(IDC_USE_PUBLICATION_INFO))->GetCheck())
     {
         dst = (USHORT)GetHexValueInt(IDC_DST);
-        app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+        app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     }
     BYTE buffer[128];
     LPBYTE p = wiced_bt_mesh_format_hci_header(dst, app_key_idx, 0, 1, 0, USE_CONFIGURED_DEFAULT_TTL, 0, 0, 0, buffer, sizeof(buffer));
@@ -5627,7 +5627,7 @@ void CClientControlDlg::OnBnClickedTcAccessPdu()
 {
     m_trace->SetCurSel(m_trace->AddString(L"Access PDU:"));
     BYTE    ttl = (BYTE)GetHexValueInt(IDC_TC_NET_LEVEL_TRX_TTL);
-    USHORT  app_key_idx = GetDlgItemInt(IDC_APP_KEY_IDX);
+    USHORT  app_key_idx = (USHORT)GetHexValueInt(IDC_APP_KEY_IDX);
     USHORT  src = (USHORT)GetHexValueInt(IDC_TC_PVNR_ADDR);
     USHORT  dst = (USHORT)GetHexValueInt(IDC_TC_NET_LEVEL_TRX_DST);
     BYTE    buffer[128];

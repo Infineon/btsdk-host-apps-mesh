@@ -42,7 +42,10 @@ static char _parityChar[] = "NOEMS";
 static char* _stopBits[] = { "1", "1.5", "2" };
 
 SOCKET m_ClientSocket = INVALID_SOCKET;
-#define SOCK_PORT_NUM   12012
+
+static int SOCK_PORT_NUM[] = { 12012, 12012, 12013 };
+extern int host_mode_instance;
+
 
 //
 //Class ComHelper Implementation
@@ -516,7 +519,7 @@ BOOL ComHelperHostMode::OpenPort(int port, int baudRate)
 
     service.sin_family = AF_INET;
     service.sin_addr.s_addr = inet_addr("127.0.0.1");
-    service.sin_port = htons(SOCK_PORT_NUM);
+    service.sin_port = htons(SOCK_PORT_NUM[host_mode_instance]);
 
     // Connect to server.
     if (SOCKET_ERROR == connect(m_ClientSocket, (const sockaddr*)&service, sizeof(service)))

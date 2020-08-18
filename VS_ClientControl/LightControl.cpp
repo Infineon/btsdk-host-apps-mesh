@@ -306,7 +306,10 @@ BOOL CLightControl::OnSetActive()
     SetDlgItemText(IDC_FILENAME, sHCDFileName);
 
     CString sStaticOobData = theApp.GetProfileString(L"LightControl", L"StaticOobData", L"");
-    SetDlgItemText(IDC_OOB_DATA, sStaticOobData);
+    if (sStaticOobData == "")
+        SetDlgItemText(IDC_OOB_DATA, L"00000000000000000102030405060708");
+    else
+        SetDlgItemText(IDC_OOB_DATA, sStaticOobData);
 
     BOOL bUseStaticOobData = theApp.GetProfileInt(L"LightControl", L"UseStaticOobData", 0);
     ((CButton *)GetDlgItem(IDC_STATIC_OOB_DATA))->SetCheck(bUseStaticOobData);
@@ -1329,19 +1332,13 @@ extern void RecordLatencyData(const char* device_name, uint16_t company_id, uint
 
 void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t model_id, uint8_t opcode, uint8_t ttl, uint8_t *p_data, uint16_t data_len)
 {
-    //__int64 msTime = thesw.Stop();
+    uint8_t tx_hops = 0;
+    uint8_t rx_hops = 0;
 
     WCHAR s[80];
     MultiByteToWideChar(CP_UTF8, 0, device_name, strlen(device_name) + 1, s, sizeof(s) / sizeof(WCHAR));
 
-    // We expect a minimum of 5 bytes, TTL (1) + elapsed time (4)
-    if (data_len < 5)
-        return;
-
     DWORD roundtrip_time = p_data[data_len-4] + (p_data[data_len-3] << 8) + (p_data[data_len-2] << 16) + (p_data[data_len-1] << 24);
-
-    uint8_t tx_hops = LOCAL_DEVICE_TTL - (uint8_t)p_data[data_len - 5];
-    uint8_t rx_hops = LOCAL_DEVICE_TTL - ttl;
 
     WCHAR buf[300] = { 0 };
     int i;
@@ -1358,12 +1355,21 @@ void vendor_specific_data(const char *device_name, uint16_t company_id, uint16_t
 
     Log(buf);
 
-    Log(L"RECV VS Data from %s company:%x model:%x opcode:%d tx_hops: %x, rx_hops: %x, roundtrip time: %d ms\n",
-        s, company_id, model_id, opcode, tx_hops, rx_hops, roundtrip_time);
-
     if (theApp.bMeshPerfMode)
     {
+        // We expect a minimum of 5 bytes, TTL (1) in response from Mesh Perf application + elapsed time (4)
+        if (data_len < 5)
+            return;
+        tx_hops = LOCAL_DEVICE_TTL - (uint8_t)p_data[data_len - 5];
+        rx_hops = LOCAL_DEVICE_TTL - ttl;
         RecordLatencyData(device_name, company_id, model_id, opcode, tx_hops, rx_hops, (int)roundtrip_time);
+        Log(L"RECV VS Data from %s company:%x model:%x opcode:%d tx_hops: %x, rx_hops: %x, roundtrip time: %d ms\n",
+            s, company_id, model_id, opcode, tx_hops, rx_hops, roundtrip_time);
+    }
+    else
+    {
+        Log(L"RECV VS Data from %s company:%x model:%x opcode:%d roundtrip time: %d ms\n",
+            s, company_id, model_id, opcode, roundtrip_time);
     }
 }
 

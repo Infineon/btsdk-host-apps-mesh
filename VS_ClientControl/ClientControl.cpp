@@ -66,6 +66,8 @@ uint64_t TickCountInitValue;
 
 extern "C" void ods(char* fmt_str, ...);
 
+int host_mode_instance = 0;
+
 /////////////////////////////////////////////////////////////////////////////
 // CMeshCommandLineInfo
 
@@ -83,6 +85,7 @@ public:
     BOOL        m_bIsUDPServer;
     BOOL        m_bPerfTestMode;
     BOOL        m_bLogToFile;
+    BOOL        m_bInstance;
     CString     sIPAddr; //IP Addr
 
 };
@@ -93,6 +96,7 @@ CMeshCommandLineInfo::CMeshCommandLineInfo() : CCommandLineInfo()
     m_bIsUDPServer = FALSE;
     m_bPerfTestMode = FALSE;
     m_bLogToFile = FALSE;
+    m_bInstance = 0;
     sIPAddr.Empty();
 }
 
@@ -125,6 +129,10 @@ void CMeshCommandLineInfo::ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLas
         case 'T': //Enable logging to file
             m_bLogToFile = TRUE;
             break;
+
+        case 'I':
+            m_bInstance = TRUE;
+            break;
         }
 
     }
@@ -135,6 +143,12 @@ void CMeshCommandLineInfo::ParseParam(LPCTSTR lpszParam, BOOL bSwitch, BOOL bLas
             sIPAddr = csParam.Right(csParam.GetLength());
             ods("IP Address:%S", &lpszParam[0]);
             ods("IP Address2:%S", sIPAddr.GetBuffer());
+        }
+        else if (m_bInstance)
+        {
+            host_mode_instance = _wtoi((const WCHAR*) &lpszParam[0]);
+            if (host_mode_instance > 2 || host_mode_instance < 0)
+                host_mode_instance = 0;
         }
     }
 }
